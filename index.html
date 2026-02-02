@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Invoice Sender</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h2>Invoice Sender</h2>
+
+    <div class="section">
+        <label for="clientSelect">Client</label>
+        <select id="clientSelect">
+            <option value="">Loading clients...</option>
+        </select>
+    </div>
+
+    <div class="section">
+        <h3>Invoice Lines</h3>
+
+        <div class="row">
+            <select class="desc">
+                <option value="">Select item...</option>
+            </select>
+            <input type="number" step="0.01" class="amount" value="">
+        </div>
+
+        <div class="row">
+            <select class="desc">
+                <option value="">Select item...</option>
+            </select>
+            <input type="number" step="0.01" class="amount" value="">
+        </div>
+
+        <div class="row">
+            <select class="desc">
+                <option value="">Select item...</option>
+            </select>
+            <input type="number" step="0.01" class="amount" value="">
+        </div>
+
+        <div class="row">
+            <select class="desc">
+                <option value="">Select item...</option>
+            </select>
+            <input type="number" step="0.01" class="amount" value="">
+        </div>
+
+        <div class="row">
+            <select class="desc">
+                <option value="">Select item...</option>
+            </select>
+            <input type="number" step="0.01" class="amount" value="">
+        </div>
+
+        <div class="row total-row">
+            <div class="label">Subtotal:</div>
+            <div class="total-field" id="subtotalDisplay">$0.00</div>
+        </div>
+
+        <div class="row total-row">
+            <div class="label">GST (10%):</div>
+            <div class="total-field" id="gstDisplay">$0.00</div>
+        </div>
+
+        <div class="row total-row">
+            <div class="label">Total Including GST:</div>
+            <div class="total-field" id="totalDisplay">$0.00</div>
+        </div>
+    </div>
+
+    <div class="section">
+        <button id="sendBtn">Send Invoice</button>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
