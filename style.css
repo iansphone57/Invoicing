@@ -27,12 +27,22 @@ select, input, button {
     font-size: 18px;
 }
 
+.invoice-number {
+    margin-top: 10px;
+    font-weight: bold;
+    font-size: 18px;
+}
+
 .row {
     display: grid;
-    grid-template-columns: 1fr 120px;
+    grid-template-columns: 1fr 1fr 120px;
     gap: 10px;
     align-items: center;
     margin-bottom: 10px;
+}
+
+.hidden {
+    display: none;
 }
 
 .amount {
