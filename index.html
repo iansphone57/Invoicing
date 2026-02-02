@@ -2,58 +2,57 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Invoice Sender</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>PC Doctor Invoicing</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h2>Invoice Sender</h2>
+
+    <h2>PC Doctor Invoicing</h2>
+
+    <!-- CSV Upload at the top -->
+    <div class="section">
+        <label for="csvInput"><strong>Select clients.csv</strong></label>
+        <input type="file" id="csvInput" accept=".csv">
+    </div>
 
     <div class="section">
         <label for="clientSelect">Client</label>
         <select id="clientSelect">
-            <option value="">Loading clients...</option>
+            <option value="">Load clients.csv first...</option>
         </select>
     </div>
 
     <div class="section">
         <h3>Invoice Lines</h3>
 
+        <!-- Five blank rows -->
         <div class="row">
-            <select class="desc">
-                <option value="">Select item...</option>
-            </select>
-            <input type="number" step="0.01" class="amount" value="">
+            <select class="desc"><option value="">Select item...</option></select>
+            <input type="number" step="0.01" class="amount">
         </div>
 
         <div class="row">
-            <select class="desc">
-                <option value="">Select item...</option>
-            </select>
-            <input type="number" step="0.01" class="amount" value="">
+            <select class="desc"><option value="">Select item...</option></select>
+            <input type="number" step="0.01" class="amount">
         </div>
 
         <div class="row">
-            <select class="desc">
-                <option value="">Select item...</option>
-            </select>
-            <input type="number" step="0.01" class="amount" value="">
+            <select class="desc"><option value="">Select item...</option></select>
+            <input type="number" step="0.01" class="amount">
         </div>
 
         <div class="row">
-            <select class="desc">
-                <option value="">Select item...</option>
-            </select>
-            <input type="number" step="0.01" class="amount" value="">
+            <select class="desc"><option value="">Select item...</option></select>
+            <input type="number" step="0.01" class="amount">
         </div>
 
         <div class="row">
-            <select class="desc">
-                <option value="">Select item...</option>
-            </select>
-            <input type="number" step="0.01" class="amount" value="">
+            <select class="desc"><option value="">Select item...</option></select>
+            <input type="number" step="0.01" class="amount">
         </div>
 
+        <!-- Totals -->
         <div class="row total-row">
             <div class="label">Subtotal:</div>
             <div class="total-field" id="subtotalDisplay">$0.00</div>
