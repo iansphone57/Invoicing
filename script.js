@@ -127,10 +127,25 @@ function sendInvoice() {
     const gst = subtotal * 0.10;
     const total = subtotal + gst;
 
+    // Build Tax Invoice number
+    const nameParts = client.name.trim().split(' ');
+    const lastName = nameParts[nameParts.length - 1];
+    const firstName = nameParts[0];
+
+    const lastInitial = lastName.charAt(0).toUpperCase();
+    const firstInitial = firstName.charAt(0).toUpperCase();
+
+    const now = new Date();
+    const yy = String(now.getFullYear()).slice(-2);
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
+
+    const invoiceNumber = `${lastInitial}${firstInitial}${yy}${mm}${dd}`;
+
     let bodyLines = [];
     bodyLines.push(`Hello ${client.name},`);
     bodyLines.push('');
-    bodyLines.push('Here is your invoice:');
+    bodyLines.push(`Tax Invoice ${invoiceNumber}`);
     bodyLines.push('');
 
     lines.forEach(l => bodyLines.push(l));
@@ -142,7 +157,7 @@ function sendInvoice() {
     bodyLines.push('Thank you,');
     bodyLines.push('Ian');
 
-    const subject = encodeURIComponent('Invoice');
+    const subject = encodeURIComponent(`Tax Invoice ${invoiceNumber}`);
     const body = encodeURIComponent(bodyLines.join('\n'));
 
     window.location.href = `mailto:${encodeURIComponent(client.email)}?subject=${subject}&body=${body}`;
