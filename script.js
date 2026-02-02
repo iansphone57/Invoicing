@@ -1,5 +1,3 @@
-const CLIENTS_CSV = 'clients.csv';
-
 const DESCRIPTION_OPTIONS = [
     'Onsite Service Call',
     'Parts',
@@ -11,22 +9,24 @@ const DESCRIPTION_OPTIONS = [
 let clients = [];
 
 document.addEventListener('DOMContentLoaded', () => {
-    loadClients();
     setupDescriptionDropdowns();
     setupAmountListeners();
+
+    document.getElementById('csvInput').addEventListener('change', handleCsvUpload);
     document.getElementById('sendBtn').addEventListener('click', sendInvoice);
 });
 
-async function loadClients() {
-    try {
-        const res = await fetch(CLIENTS_CSV);
-        const text = await res.text();
+function handleCsvUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = e => {
+        const text = e.target.result;
         clients = parseCsv(text);
         populateClientSelect(clients);
-    } catch (e) {
-        const sel = document.getElementById('clientSelect');
-        sel.innerHTML = '<option value="">Error loading clients</option>';
-    }
+    };
+    reader.readAsText(file);
 }
 
 function parseCsv(text) {
