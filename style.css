@@ -3,6 +3,7 @@ body {
     padding: 16px;
     max-width: 480px;
     margin: 0 auto;
+    font-size: 18px;
 }
 
 h2, h3 {
@@ -15,14 +16,15 @@ h2, h3 {
 
 label {
     display: block;
-    margin-bottom: 4px;
+    margin-bottom: 6px;
+    font-size: 18px;
 }
 
 select, input, button {
     width: 100%;
-    padding: 10px;
+    padding: 12px;
     box-sizing: border-box;
-    font-size: 16px;
+    font-size: 18px;
 }
 
 .row {
@@ -30,7 +32,7 @@ select, input, button {
     grid-template-columns: 1fr 120px;
     gap: 10px;
     align-items: center;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
 }
 
 .amount {
@@ -47,6 +49,7 @@ select, input, button {
     text-align: right;
     font-weight: bold;
     padding-right: 8px;
+    font-size: 18px;
 }
 
 button {
