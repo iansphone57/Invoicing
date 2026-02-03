@@ -1,5 +1,5 @@
 // ============================
-// PC Doctor Invoicing - Version 1.04
+// PC Doctor Invoicing - Version 1.06
 // ============================
 
 const BUSINESS = {
@@ -153,7 +153,7 @@ function addRow() {
 }
 
 // ============================
-// GENERATE PDF (with improved footer)
+// GENERATE PDF (v1.06)
 // ============================
 
 async function generatePDF() {
@@ -173,7 +173,8 @@ async function generatePDF() {
     doc.text(BUSINESS.name, 20, 35);
     doc.text(`ABN: ${BUSINESS.abn}`, 20, 42);
 
-    // Phone/Mobile/Email on one line
+    // FIXED: Phone/Mobile/Email on one line
+    doc.setFontSize(10.5);
     doc.text(
         `Phone: ${BUSINESS.phone}    Mobile: ${BUSINESS.mobile}    Email: ${BUSINESS.email}`,
         20,
@@ -248,12 +249,12 @@ async function generatePDF() {
     doc.text(`$${total.toFixed(2)}`, 180, y, { align: "right" });
 
     // ============================
-    // FOOTER BLOCK (v1.04)
+    // FOOTER BLOCK (v1.06)
     // ============================
 
     y += 15;
 
-    // --- Top section (normal size) ---
+    // --- Top section ---
     doc.setFontSize(11);
 
     const footerTop = `
@@ -272,9 +273,9 @@ details, please put YOUR COMPANY NAME or INVOICE Number so that I can administer
 payments quickly.
 `;
 
-    let lines = doc.splitTextToSize(footerTop, 185);
+    let lines = doc.splitTextToSize(footerTop, 200);
     doc.text(lines, 15, y);
-    y += lines.length * 5 + 5;
+    y += lines.length * 5 + 10; // 2 blank lines before legal block
 
     // --- Legal block (smaller font, wider wrap) ---
     doc.setFontSize(9);
@@ -285,7 +286,7 @@ The property and items of this invoice remain the property and possession of the
 Where payment has not been made in full within the trading terms herein the seller and its authorized agents and assigns hereby expressly reserve the right to recover the goods and the purchaser expressly authorizes the seller to enter such premises where the goods are located and to use such force as is reasonably necessary to effect return of same without liability for trespass, damage or loss occasioned to the purchaser in the course of such recovery. The purchaser hereby acknowledges and accepts the terms of sale herein.
 `;
 
-    lines = doc.splitTextToSize(legalBlock, 195);
+    lines = doc.splitTextToSize(legalBlock, 200);
     doc.text(lines, 15, y);
 
     // FINAL LINE
