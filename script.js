@@ -1,6 +1,15 @@
 // ============================
-// PC Doctor Invoicing - Version 1.03
+// PC Doctor Invoicing - Version 1.06
 // ============================
+
+const BUSINESS = {
+    name: "Original PC Doctor",
+    phone: "34 222 007",
+    mobile: "0403 168 740",
+    email: "ian@pcdoc.net.au"
+};
+
+let allClients = []; // full client list for search/filter
 
 // ============================
 // LOAD CLIENTS CSV
@@ -23,6 +32,8 @@ function handleCSVUpload(event) {
 function parseClientsCSV(csvText) {
     const lines = csvText.split("\n").map(l => l.trim()).filter(l => l.length > 0);
 
+    allClients = [...lines];
+
     const dropdown = document.getElementById("clientSelect");
     dropdown.innerHTML = "";
 
@@ -40,21 +51,110 @@ function parseClientsCSV(csvText) {
 }
 
 // ============================
-// ADD ROW
+// CLIENT SEARCH FILTER
+// ============================
+
+function filterClients() {
+    const search = document.getElementById("clientSearch").value.toLowerCase();
+    const dropdown = document.getElementById("clientSelect");
+
+    dropdown.innerHTML = "";
+
+    const filtered = allClients.filter(c => c.toLowerCase().includes(search));
+
+    if (filtered.length === 0) {
+        const opt = document.createElement("option");
+        opt.text = "-- No matches --";
+        opt.value = "";
+        dropdown.appendChild(opt);
+        return;
+    }
+
+    const defaultOption = document.createElement("option");
+    defaultOption.text = "Select a client";
+    defaultOption.value = "";
+    dropdown.appendChild(defaultOption);
+
+    filtered.forEach(client => {
+        const opt = document.createElement("option");
+        opt.text = client;
+        opt.value = client;
+        dropdown.appendChild(opt);
+    });
+}
+
+// ============================
+// NEW CLIENT SUPPORT
+// ============================
+
+function showNewClientForm() {
+    document.getElementById("newClientForm").style.display = "block";
+}
+
+function addNewClient() {
+    const name = document.getElementById("newClientName").value.trim();
+    const email = document.getElementById("newClientEmail").value.trim();
+
+    if (!name || !email) {
+        alert("Please enter both name and email");
+        return;
+    }
+
+    const newEntry = `${name},${email}`;
+
+    // Add to in-memory list
+    allClients.push(newEntry);
+
+    // Refresh dropdown based on current search
+    filterClients();
+
+    // Select the new client automatically
+    const dropdown = document.getElementById("clientSelect");
+    dropdown.value = newEntry;
+
+    // Hide form + clear fields
+    document.getElementById("newClientForm").style.display = "none";
+    document.getElementById("newClientName").value = "";
+    document.getElementById("newClientEmail").value = "";
+
+    // Offer updated CSV download
+    downloadUpdatedCSV();
+}
+
+function downloadUpdatedCSV() {
+    const entries = [...allClients];
+    const csvContent = entries.join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "clients-updated.csv";
+    a.click();
+
+    URL.revokeObjectURL(url);
+}
+
+// ============================
+// ADD ROW (Row 1 = Travel, Row 2+ = Parts)
 // ============================
 
 function addRow() {
     const container = document.getElementById("rows");
+    const rowCount = container.querySelectorAll(".invoice-row").length;
 
     const div = document.createElement("div");
     div.className = "invoice-row";
 
+    let defaultType = "Travel";
+    if (rowCount >= 1) defaultType = "Parts";
+
     div.innerHTML = `
         <select class="descSelect">
-            <option>Travel</option>
-            <option>Parts</option>
-            <option>Labour</option>
-            <option>Other</option>
+            <option ${defaultType === "Travel" ? "selected" : ""}>Travel</option>
+            <option ${defaultType === "Parts" ? "selected" : ""}>Parts</option>
+            <option ${defaultType === "Labour" ? "selected" : ""}>Labour</option>
+            <option ${defaultType === "Other" ? "selected" : ""}>Other</option>
         </select>
 
         <input type="text" class="descInput" placeholder="Description (optional)">
@@ -65,7 +165,7 @@ function addRow() {
 }
 
 // ============================
-// GENERATE PDF (VERSION 1.03)
+// GENERATE PDF
 // ============================
 
 async function generatePDF() {
@@ -76,17 +176,17 @@ async function generatePDF() {
     // HEADER
     doc.setFont("helvetica", "bold");
     doc.setFontSize(26);
-    doc.text("ORIGINAL PC DOCTOR", 105, 20, { align: "center" });
+    doc.text(BUSINESS.name, 105, 20, { align: "center" });
 
     // BUSINESS DETAILS
     doc.setFont("helvetica", "normal");
     doc.setFontSize(12);
 
-    doc.text("Phone: 0402 026 000", 20, 35);
-    doc.text("Mobile: 0402 026 000", 20, 42);
-    doc.text("Email: originalpcdoctor@gmail.com", 20, 49);
+    doc.text(`Phone: ${BUSINESS.phone}`, 20, 35);
+    doc.text(`Mobile: ${BUSINESS.mobile}`, 20, 42);
+    doc.text(`Email: ${BUSINESS.email}`, 20, 49);
 
-    // CLIENT NAME (from dropdown)
+    // CLIENT NAME
     const clientName = document.getElementById("clientSelect").value || "Client";
 
     doc.setFontSize(14);
@@ -107,12 +207,8 @@ async function generatePDF() {
     doc.text(`Invoice #: ${invoiceNumber}`, 150, 35);
     doc.text(`Date: ${dateStr}`, 150, 42);
 
-    // ============================
     // READ DYNAMIC ROWS
-    // ============================
-
     let y = 100;
-
     const rows = document.querySelectorAll(".invoice-row");
 
     rows.forEach(row => {
@@ -134,10 +230,7 @@ async function generatePDF() {
         }
     });
 
-    // ============================
     // TOTALS
-    // ============================
-
     let subtotal = 0;
 
     rows.forEach(row => {
@@ -168,4 +261,12 @@ async function generatePDF() {
 
     // SAVE PDF
     doc.save(`Invoice-${invoiceNumber}.pdf`);
+}
+
+// ============================
+// EMAIL INVOICE (placeholder)
+// ============================
+
+function emailInvoice() {
+    alert("Email sending not implemented yet.");
 }
