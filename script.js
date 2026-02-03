@@ -1,11 +1,8 @@
-// =========================
-// GLOBAL CLIENT STORAGE
-// =========================
+// v1.00 – PDF-based invoicing
+
 let clients = [];
 
-// =========================
-// CSV UPLOAD HANDLER
-// =========================
+// CSV upload
 function handleCSVUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -18,9 +15,6 @@ function handleCSVUpload(event) {
     reader.readAsText(file);
 }
 
-// =========================
-// CSV PARSER
-// =========================
 function parseCSV(text) {
     clients = [];
     const lines = text.split("\n");
@@ -38,9 +32,6 @@ function parseCSV(text) {
     populateClientDropdown();
 }
 
-// =========================
-// POPULATE CLIENT DROPDOWN
-// =========================
 function populateClientDropdown() {
     const select = document.getElementById("clientSelect");
     select.innerHTML = "";
@@ -53,9 +44,7 @@ function populateClientDropdown() {
     });
 }
 
-// =========================
-// INVOICE NUMBER GENERATOR
-// =========================
+// Invoice number
 function generateInvoiceNumber(name) {
     const parts = name.trim().split(" ");
     const last = parts[parts.length - 1][0].toUpperCase();
@@ -69,9 +58,7 @@ function generateInvoiceNumber(name) {
     return `${last}${first}${yy}${mm}${dd}`;
 }
 
-// =========================
-// DATE FORMATTER
-// =========================
+// Date
 function formatDate(date) {
     const dd = String(date.getDate()).padStart(2, "0");
     const mm = String(date.getMonth() + 1).padStart(2, "0");
@@ -79,38 +66,8 @@ function formatDate(date) {
     return `${dd}/${mm}/${yyyy}`;
 }
 
-// =========================
-// MONOSPACE DIGIT MAP
-// =========================
-const monoDigits = {
-    "0": "𝟶", "1": "𝟷", "2": "𝟸", "3": "𝟹", "4": "𝟺",
-    "5": "𝟻", "6": "𝟼", "7": "𝟽", "8": "𝟾", "9": "𝟿",
-    ".": "․",
-    "$": "＄"
-};
-
-function monoNum(str) {
-    return str.split("").map(ch => monoDigits[ch] || ch).join("");
-}
-
-// =========================
-// FIXED-WIDTH PADDING
-// =========================
-const PAD = "\u2007"; // FIGURE SPACE
-const COL_WIDTH = 50; // FINAL WORKING WIDTH
-const DATE_OFFSET = PAD.repeat(13); // Move date right by 13 chars
-
-function rightAlign(label, amountMono) {
-    const totalLen = label.length + amountMono.length;
-    const needed = Math.max(1, COL_WIDTH - totalLen);
-    return label + PAD.repeat(needed) + amountMono;
-}
-
-// =========================
-// SEND INVOICE
-// =========================
-function sendInvoice() {
-
+// Main: generate PDF and open email
+async function generatePdfAndEmail() {
     const clientSelect = document.getElementById('clientSelect');
     const clientIndex = clientSelect.value;
 
@@ -144,10 +101,6 @@ function sendInvoice() {
             }
         }
 
-        if (label.length > 50) {
-            label = label.substring(0, 50);
-        }
-
         items.push({ label, amount });
         subtotal += amount;
     });
@@ -160,50 +113,91 @@ function sendInvoice() {
     const gst = subtotal * 0.10;
     const total = subtotal + gst;
 
-    function moneyMono(num) {
-        const normal = num.toFixed(2);
-        return monoNum(normal);
-    }
+    // Build PDF
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
 
-    let bodyLines = [];
+    let y = 15;
 
-    // Header
-    bodyLines.push("ORIGINAL PC DOCTOR");
-    bodyLines.push("Onsite Servicing Brisbane and Surrounds".padEnd(61, " ") + "ABN: 63159610829");
-    bodyLines.push("Phone: 34 222 007      Mobile: 0403 168 740      email: ian@pcdoc.net.au");
-    bodyLines.push("");
+    // Header – ORIGINAL PC DOCTOR in Headhunter (simulated by font + style)
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(18);
+    doc.text('ORIGINAL PC DOCTOR', 10, y);
+    y += 8;
 
-    // Invoice + Date
-    const dateStr = DATE_OFFSET + "Date: " + monoNum(formatDate(new Date()));
-    const invoiceStr = "Tax Invoice " + invoiceNumber;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(11);
+    doc.text('Onsite Servicing Brisbane and Surrounds                 ABN: 63159610829', 10, y);
+    y += 6;
+    doc.text('Phone: 34 222 007      Mobile: 0403 168 740      email: ian@pcdoc.net.au', 10, y);
+    y += 10;
 
-    bodyLines.push(rightAlign(invoiceStr, dateStr));
-    bodyLines.push("");
+    // Invoice + date + client
+    const todayStr = formatDate(new Date());
 
-    // Items
-    items.forEach(item => {
-        const amtMono = "＄" + moneyMono(item.amount);
-        bodyLines.push(rightAlign(item.label, amtMono));
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`Tax Invoice ${invoiceNumber}`, 10, y);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Date: ${todayStr}`, 150, y, { align: 'right' });
+    y += 8;
+
+    doc.text(`Bill To: ${client.name}`, 10, y);
+    y += 6;
+    doc.text(`${client.email}`, 10, y);
+    y += 10;
+
+    // Items table
+    const body = items.map(item => [
+        item.label,
+        item.amount.toFixed(2)
+    ]);
+
+    doc.autoTable({
+        startY: y,
+        head: [['Description', 'Amount (AUD)']],
+        body,
+        styles: { font: 'helvetica', fontSize: 11 },
+        headStyles: { fillColor: [230, 230, 230] },
+        columnStyles: {
+            0: { cellWidth: 120 },
+            1: { cellWidth: 40, halign: 'right' }
+        }
     });
 
-    bodyLines.push("");
+    const finalY = doc.lastAutoTable.finalY + 8;
 
     // Totals
-    const subMono = "＄" + moneyMono(subtotal);
-    bodyLines.push(rightAlign("Subtotal:", subMono));
+    doc.setFont('helvetica', 'bold');
+    doc.text('Subtotal:', 130, finalY, { align: 'right' });
+    doc.text(subtotal.toFixed(2), 190, finalY, { align: 'right' });
 
-    const gstMono = "＄" + moneyMono(gst);
-    bodyLines.push(rightAlign("GST (10%):", gstMono));
+    doc.text('GST (10%):', 130, finalY + 6, { align: 'right' });
+    doc.text(gst.toFixed(2), 190, finalY + 6, { align: 'right' });
 
-    const totalMono = "＄" + moneyMono(total);
-    bodyLines.push(rightAlign("Total Including GST:", totalMono));
+    doc.text('Total Including GST:', 130, finalY + 12, { align: 'right' });
+    doc.text(total.toFixed(2), 190, finalY + 12, { align: 'right' });
 
-    bodyLines.push("");
-    bodyLines.push("Thank you,");
-    bodyLines.push("Ian");
+    // Footer
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(11);
+    doc.text('Thank you,', 10, finalY + 24);
+    doc.text('Ian', 10, finalY + 30);
 
+    const fileName = `Tax_Invoice_${invoiceNumber}.pdf`;
+    doc.save(fileName);
+
+    // Open email (user manually attaches PDF)
     const subject = encodeURIComponent(`Tax Invoice ${invoiceNumber}`);
-    const body = encodeURIComponent(bodyLines.join("\n"));
+    const bodyText = [
+        `Hi ${client.name},`,
+        '',
+        'Please find attached your tax invoice.',
+        '',
+        'Regards,',
+        'Ian'
+    ].join('\n');
 
-    window.location.href = `mailto:${encodeURIComponent(client.email)}?subject=${subject}&body=${body}`;
+    const mailto = `mailto:${encodeURIComponent(client.email)}?subject=${subject}&body=${encodeURIComponent(bodyText)}`;
+    window.location.href = mailto;
 }
