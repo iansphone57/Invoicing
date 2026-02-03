@@ -161,40 +161,51 @@ async function generatePDF() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
 
-    // HEADER
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(26);
-    doc.text("Tax Invoice", 105, 20, { align: "center" });
+    // ============================
+    // HEADER (v1.01 corrected)
+    // ============================
 
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(12);
-
-    doc.text(BUSINESS.name, 20, 35);
-    doc.text(`ABN: ${BUSINESS.abn}`, 105, 35, { align: "center" });
-    doc.text(`Date: ${new Date().toLocaleDateString("en-AU")}`, 190, 35, { align: "right" });
-
-    // FIXED: Phone / Mobile / Email
-    doc.text(`Phone: ${BUSINESS.phone}`, 20, 42);
-    doc.text(`Mobile: ${BUSINESS.mobile}`, 87, 42); // ← moved LEFT by ~6 chars
-    doc.text(`Email: ${BUSINESS.email}`, 190, 42, { align: "right" });
-
-    // CLIENT NAME
     const clientName = document.getElementById("clientSelect").value || "Client";
-
-    doc.setFontSize(14);
-    doc.text("Invoice To:", 20, 70);
-    doc.setFontSize(12);
-    doc.text(clientName, 20, 77);
-
-    // INVOICE NUMBER
     const today = new Date();
+    const dateStr = today.toLocaleDateString("en-AU");
+
     const initials = clientName
         ? clientName.split(" ").map(w => w[0]).join("").toUpperCase()
         : "INV";
 
     const invoiceNumber = `${initials}${today.getFullYear()}${String(today.getMonth()+1).padStart(2,"0")}${String(today.getDate()).padStart(2,"0")}`;
 
-    // ITEMS
+    // LINE 1 — Tax Invoice + Invoice Number
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(26);
+    doc.text(`Tax Invoice   ${invoiceNumber}`, 105, 20, { align: "center" });
+
+    // LINE 2 — Business Name / ABN / Date
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(12);
+
+    doc.text(BUSINESS.name, 20, 35);
+    doc.text(`ABN: ${BUSINESS.abn}`, 105, 35, { align: "center" });
+    doc.text(`Date: ${dateStr}`, 190, 35, { align: "right" });
+
+    // LINE 3 — Phone / Mobile / Email
+    doc.text(`Phone: ${BUSINESS.phone}`, 20, 42);
+    doc.text(`Mobile: ${BUSINESS.mobile}`, 87, 42); // ← moved LEFT by ~6 chars
+    doc.text(`Email: ${BUSINESS.email}`, 190, 42, { align: "right" });
+
+    // ============================
+    // CLIENT NAME
+    // ============================
+
+    doc.setFontSize(14);
+    doc.text("Invoice To:", 20, 70);
+    doc.setFontSize(12);
+    doc.text(clientName, 20, 77);
+
+    // ============================
+    // INVOICE ITEMS
+    // ============================
+
     let y = 100;
     const rows = document.querySelectorAll(".invoice-row");
 
@@ -217,7 +228,10 @@ async function generatePDF() {
         }
     });
 
+    // ============================
     // TOTALS
+    // ============================
+
     let subtotal = 0;
     rows.forEach(row => {
         const amount = parseFloat(row.querySelector(".amount").value) || 0;
@@ -240,7 +254,10 @@ async function generatePDF() {
     doc.text("Total:", 120, y);
     doc.text(`$${total.toFixed(2)}`, 180, y, { align: "right" });
 
+    // ============================
     // FOOTER
+    // ============================
+
     y += 15;
 
     doc.setFontSize(10);
