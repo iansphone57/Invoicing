@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupAmountListeners();
 
     document.getElementById('csvInput').addEventListener('change', handleCsvUpload);
-    document.getElementById('clientSelect').addEventListener('change', updateInvoiceNumber);
+    document.getElementById('clientSelect').addEventListener('change', updateInvoiceHeader);
     document.getElementById('sendBtn').addEventListener('click', sendInvoice);
 });
 
@@ -112,21 +112,31 @@ function formatMoney(num) {
     return '$' + num.toFixed(2);
 }
 
-function updateInvoiceNumber() {
+function formatDate(d) {
+    const dd = String(d.getDate()).padStart(2, '0');
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const yyyy = d.getFullYear();
+    return `${dd}/${mm}/${yyyy}`;
+}
+
+function updateInvoiceHeader() {
     const clientSelect = document.getElementById('clientSelect');
     const index = clientSelect.value;
 
-    const display = document.getElementById('invoiceNumberDisplay');
+    const numberDisplay = document.getElementById('invoiceNumberDisplay');
+    const dateDisplay = document.getElementById('invoiceDateDisplay');
 
     if (index === '') {
-        display.textContent = '';
+        numberDisplay.textContent = '';
+        dateDisplay.textContent = '';
         return;
     }
 
     const client = clients[index];
     const invoiceNumber = generateInvoiceNumber(client.name);
 
-    display.textContent = `Tax Invoice: ${invoiceNumber}`;
+    numberDisplay.textContent = `Tax Invoice: ${invoiceNumber}`;
+    dateDisplay.textContent = `Date: ${formatDate(new Date())}`;
 }
 
 function generateInvoiceNumber(fullName) {
