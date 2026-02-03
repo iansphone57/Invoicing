@@ -202,9 +202,19 @@ function sendInvoice() {
     const total = subtotal + gst;
 
     let bodyLines = [];
-    bodyLines.push(`Hello ${client.name},`);
+
+    // Business header (email only)
+    bodyLines.push('ORIGINAL PC DOCTOR');
+    bodyLines.push('Onsite Servicing Brisbane and Surrounds        ABN: 63159610829');
+    bodyLines.push('Phone: 34 222 007    Mobile: 0403 168 740    email: ian@pcdoc.net.au');
     bodyLines.push('');
-    bodyLines.push(`Tax Invoice ${invoiceNumber}`);
+
+    // Invoice + Date on same line
+    const dateStr = `Date: ${formatDate(new Date())}`;
+    const invoiceStr = `Tax Invoice ${invoiceNumber}`;
+    const combinedLine = invoiceStr.padEnd(60, ' ') + dateStr;
+
+    bodyLines.push(combinedLine);
     bodyLines.push('');
 
     lines.forEach(l => bodyLines.push(l));
