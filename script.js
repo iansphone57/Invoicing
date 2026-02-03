@@ -96,8 +96,8 @@ function monoNum(str) {
 // =========================
 // FIXED-WIDTH PADDING
 // =========================
-const PAD = "\u2007"; // FIGURE SPACE (fixed width)
-const COL_WIDTH = 60; // NEW WIDTH
+const PAD = "\u2007"; // FIGURE SPACE
+const COL_WIDTH = 65; // FINAL CORRECT WIDTH
 
 function rightAlign(label, amountMono) {
     const totalLen = label.length + amountMono.length;
@@ -172,7 +172,7 @@ function sendInvoice() {
     bodyLines.push("Phone: 34 222 007      Mobile: 0403 168 740      email: ian@pcdoc.net.au");
     bodyLines.push("");
 
-    // Invoice + Date (aligned)
+    // Invoice + Date
     const dateStr = "Date: " + monoNum(formatDate(new Date()));
     const invoiceStr = "Tax Invoice " + invoiceNumber;
 
