@@ -1,5 +1,5 @@
 // ============================
-// PC Doctor Invoicing - Version 1.09
+// PC Doctor Invoicing - Version 1.10
 // ============================
 
 const BUSINESS = {
@@ -153,7 +153,7 @@ function addRow() {
 }
 
 // ============================
-// GENERATE PDF (v1.09)
+// GENERATE PDF (v1.10)
 // ============================
 
 async function generatePDF() {
@@ -162,7 +162,7 @@ async function generatePDF() {
     const doc = new jsPDF();
 
     // ============================
-    // HEADER (v1.09)
+    // HEADER (v1.10)
     // ============================
 
     const clientName = document.getElementById("clientSelect").value || "Client";
@@ -186,12 +186,16 @@ async function generatePDF() {
 
     doc.text(BUSINESS.name, 20, 35);
     doc.text(`ABN: ${BUSINESS.abn}`, 105, 35, { align: "center" });
-    doc.text(`Date: ${dateStr}`, 190, 35, { align: "right" }); // moved right
+    doc.text(`Date: ${dateStr}`, 190, 35, { align: "right" });
+
+    // Calculate exact X position of the "A" in ABN
+    const abnLabelWidth = doc.getTextWidth("ABN:");
+    const abnA_X = 105 - (abnLabelWidth / 2);
 
     // LINE 3 — Phone / Mobile / Email
     doc.text(`Phone: ${BUSINESS.phone}`, 20, 42);
-    doc.text(`Mobile: ${BUSINESS.mobile}`, 99, 42); // aligned under "A" of ABN
-    doc.text(`Email: ${BUSINESS.email}`, 190, 42, { align: "right" }); // moved right
+    doc.text(`Mobile: ${BUSINESS.mobile}`, abnA_X, 42); // PERFECT alignment under "A"
+    doc.text(`Email: ${BUSINESS.email}`, 190, 42, { align: "right" });
 
     // ============================
     // CLIENT NAME
@@ -255,7 +259,7 @@ async function generatePDF() {
     doc.text(`$${total.toFixed(2)}`, 180, y, { align: "right" });
 
     // ============================
-    // FOOTER (v1.09)
+    // FOOTER (v1.10)
     // ============================
 
     y += 15;
