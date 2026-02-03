@@ -36,7 +36,7 @@ function parseClientsCSV(csvText) {
 }
 
 // ============================
-// GENERATE PDF (VERSION 1.01)
+// GENERATE PDF (VERSION 1.02)
 // ============================
 
 async function generatePDF() {
@@ -58,7 +58,7 @@ async function generatePDF() {
     doc.text("Email: originalpcdoctor@gmail.com", 20, 49);
 
     // CLIENT NAME (from dropdown)
-    const clientName = document.getElementById("clientSelect").value;
+    const clientName = document.getElementById("clientSelect").value || "Client";
 
     doc.setFontSize(14);
     doc.text("Invoice To:", 20, 65);
