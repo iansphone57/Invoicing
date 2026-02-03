@@ -1,9 +1,10 @@
 // ============================
-// PC Doctor Invoicing - Version 1.06
+// PC Doctor Invoicing - Version 1.01
 // ============================
 
 const BUSINESS = {
     name: "Original PC Doctor",
+    abn: "YOUR_ABN_HERE",
     phone: "34 222 007",
     mobile: "0403 168 740",
     email: "ian@pcdoc.net.au"
@@ -102,22 +103,17 @@ function addNewClient() {
 
     const newEntry = `${name},${email}`;
 
-    // Add to in-memory list
     allClients.push(newEntry);
 
-    // Refresh dropdown based on current search
     filterClients();
 
-    // Select the new client automatically
     const dropdown = document.getElementById("clientSelect");
     dropdown.value = newEntry;
 
-    // Hide form + clear fields
     document.getElementById("newClientForm").style.display = "none";
     document.getElementById("newClientName").value = "";
     document.getElementById("newClientEmail").value = "";
 
-    // Offer updated CSV download
     downloadUpdatedCSV();
 }
 
@@ -176,23 +172,25 @@ async function generatePDF() {
     // HEADER
     doc.setFont("helvetica", "bold");
     doc.setFontSize(26);
-    doc.text(BUSINESS.name, 105, 20, { align: "center" });
+    doc.text("Tax Invoice", 105, 20, { align: "center" });
 
     // BUSINESS DETAILS
     doc.setFont("helvetica", "normal");
     doc.setFontSize(12);
 
-    doc.text(`Phone: ${BUSINESS.phone}`, 20, 35);
-    doc.text(`Mobile: ${BUSINESS.mobile}`, 20, 42);
-    doc.text(`Email: ${BUSINESS.email}`, 20, 49);
+    doc.text(BUSINESS.name, 20, 35);
+    doc.text(`ABN: ${BUSINESS.abn}`, 20, 42);
+    doc.text(`Phone: ${BUSINESS.phone}`, 20, 49);
+    doc.text(`Mobile: ${BUSINESS.mobile}`, 20, 56);
+    doc.text(`Email: ${BUSINESS.email}`, 20, 63);
 
     // CLIENT NAME
     const clientName = document.getElementById("clientSelect").value || "Client";
 
     doc.setFontSize(14);
-    doc.text("Invoice To:", 20, 65);
+    doc.text("Invoice To:", 20, 80);
     doc.setFontSize(12);
-    doc.text(clientName, 20, 72);
+    doc.text(clientName, 20, 87);
 
     // INVOICE NUMBER + DATE
     const today = new Date();
@@ -208,7 +206,7 @@ async function generatePDF() {
     doc.text(`Date: ${dateStr}`, 150, 42);
 
     // READ DYNAMIC ROWS
-    let y = 100;
+    let y = 110;
     const rows = document.querySelectorAll(".invoice-row");
 
     rows.forEach(row => {
@@ -217,6 +215,7 @@ async function generatePDF() {
         const amount = row.querySelector(".amount").value.trim();
 
         if (amount !== "") {
+            doc.setFontSize(12);
             doc.text(type, 20, y);
             doc.text(`$${amount}`, 180, y, { align: "right" });
             y += 7;
@@ -224,15 +223,13 @@ async function generatePDF() {
             if (desc !== "") {
                 doc.setFontSize(11);
                 doc.text(desc, 25, y);
-                doc.setFontSize(12);
                 y += 7;
             }
         }
     });
 
-    // TOTALS
+    // TOTALS (aligned under item amounts, same font size)
     let subtotal = 0;
-
     rows.forEach(row => {
         const amount = parseFloat(row.querySelector(".amount").value) || 0;
         subtotal += amount;
@@ -242,24 +239,22 @@ async function generatePDF() {
     const total = subtotal + gst;
 
     y += 10;
-    doc.setFontSize(14);
-    doc.text("Subtotal:", 140, y);
-    doc.text(`$${subtotal.toFixed(2)}`, 200, y, { align: "right" });
+    doc.setFontSize(12);
+    doc.text("Subtotal:", 120, y);
+    doc.text(`$${subtotal.toFixed(2)}`, 180, y, { align: "right" });
 
-    y += 8;
-    doc.text("GST (10%):", 140, y);
-    doc.text(`$${gst.toFixed(2)}`, 200, y, { align: "right" });
+    y += 7;
+    doc.text("GST (10%):", 120, y);
+    doc.text(`$${gst.toFixed(2)}`, 180, y, { align: "right" });
 
-    y += 8;
-    doc.setFontSize(16);
-    doc.text("Total:", 140, y);
-    doc.text(`$${total.toFixed(2)}`, 200, y, { align: "right" });
+    y += 7;
+    doc.text("Total:", 120, y);
+    doc.text(`$${total.toFixed(2)}`, 180, y, { align: "right" });
 
     // FOOTER
     doc.setFontSize(10);
     doc.text("Thank you for your business!", 105, 285, { align: "center" });
 
-    // SAVE PDF
     doc.save(`Invoice-${invoiceNumber}.pdf`);
 }
 
