@@ -1,5 +1,5 @@
 // ============================
-// PC Doctor Invoicing - Version 1.10
+// PC Doctor Invoicing - Version 1.01
 // ============================
 
 const BUSINESS = {
@@ -10,7 +10,7 @@ const BUSINESS = {
     email: "ian@pcdoc.net.au"
 };
 
-let allClients = []; // full client list for search/filter
+let allClients = [];
 
 // ============================
 // LOAD CLIENTS CSV
@@ -153,7 +153,7 @@ function addRow() {
 }
 
 // ============================
-// GENERATE PDF (v1.10)
+// GENERATE PDF (v1.01)
 // ============================
 
 async function generatePDF() {
@@ -161,55 +161,40 @@ async function generatePDF() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
 
-    // ============================
-    // HEADER (v1.10)
-    // ============================
-
-    const clientName = document.getElementById("clientSelect").value || "Client";
-    const today = new Date();
-    const dateStr = today.toLocaleDateString("en-AU");
-
-    const initials = clientName
-        ? clientName.split(" ").map(w => w[0]).join("").toUpperCase()
-        : "INV";
-
-    const invoiceNumber = `${initials}${today.getFullYear()}${String(today.getMonth()+1).padStart(2,"0")}${String(today.getDate()).padStart(2,"0")}`;
-
-    // LINE 1 — Tax Invoice + Invoice Number
+    // HEADER
     doc.setFont("helvetica", "bold");
     doc.setFontSize(26);
-    doc.text(`Tax Invoice   ${invoiceNumber}`, 105, 20, { align: "center" });
+    doc.text("Tax Invoice", 105, 20, { align: "center" });
 
-    // LINE 2 — Business Name / ABN / Date
     doc.setFont("helvetica", "normal");
     doc.setFontSize(12);
 
     doc.text(BUSINESS.name, 20, 35);
     doc.text(`ABN: ${BUSINESS.abn}`, 105, 35, { align: "center" });
-    doc.text(`Date: ${dateStr}`, 190, 35, { align: "right" });
+    doc.text(`Date: ${new Date().toLocaleDateString("en-AU")}`, 190, 35, { align: "right" });
 
-    // Calculate exact X position of the "A" in ABN
-    const abnLabelWidth = doc.getTextWidth("ABN:");
-    const abnA_X = 105 - (abnLabelWidth / 2);
-
-    // LINE 3 — Phone / Mobile / Email
+    // FIXED: Phone / Mobile / Email
     doc.text(`Phone: ${BUSINESS.phone}`, 20, 42);
-    doc.text(`Mobile: ${BUSINESS.mobile}`, abnA_X, 42); // PERFECT alignment under "A"
+    doc.text(`Mobile: ${BUSINESS.mobile}`, 87, 42); // ← moved LEFT by ~6 chars
     doc.text(`Email: ${BUSINESS.email}`, 190, 42, { align: "right" });
 
-    // ============================
     // CLIENT NAME
-    // ============================
+    const clientName = document.getElementById("clientSelect").value || "Client";
 
     doc.setFontSize(14);
     doc.text("Invoice To:", 20, 70);
     doc.setFontSize(12);
     doc.text(clientName, 20, 77);
 
-    // ============================
-    // INVOICE ITEMS
-    // ============================
+    // INVOICE NUMBER
+    const today = new Date();
+    const initials = clientName
+        ? clientName.split(" ").map(w => w[0]).join("").toUpperCase()
+        : "INV";
 
+    const invoiceNumber = `${initials}${today.getFullYear()}${String(today.getMonth()+1).padStart(2,"0")}${String(today.getDate()).padStart(2,"0")}`;
+
+    // ITEMS
     let y = 100;
     const rows = document.querySelectorAll(".invoice-row");
 
@@ -232,10 +217,7 @@ async function generatePDF() {
         }
     });
 
-    // ============================
     // TOTALS
-    // ============================
-
     let subtotal = 0;
     rows.forEach(row => {
         const amount = parseFloat(row.querySelector(".amount").value) || 0;
@@ -258,10 +240,7 @@ async function generatePDF() {
     doc.text("Total:", 120, y);
     doc.text(`$${total.toFixed(2)}`, 180, y, { align: "right" });
 
-    // ============================
-    // FOOTER (v1.10)
-    // ============================
-
+    // FOOTER
     y += 15;
 
     doc.setFontSize(10);
@@ -285,7 +264,6 @@ YOUR COMPANY NAME or INVOICE Number so that I can administer payments quickly.
     doc.text(lines, 15, y);
     y += lines.length * 5 + 10;
 
-    // Legal block
     doc.setFontSize(9);
 
     const legalBlock = `
@@ -297,7 +275,6 @@ Where payment has not been made in full within the trading terms herein the sell
     lines = doc.splitTextToSize(legalBlock, 175);
     doc.text(lines, 15, y);
 
-    // FINAL LINE
     doc.setFontSize(10);
     doc.text("Thank you for your business!", 105, 285, { align: "center" });
 
