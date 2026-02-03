@@ -1,3 +1,8 @@
+@font-face {
+    font-family: 'Headhunter';
+    src: url('headhunter.ttf') format('truetype');
+}
+
 body {
     font-family: sans-serif;
     padding: 16px;
@@ -27,7 +32,6 @@ select, input, button {
     font-size: 18px;
 }
 
-/* Invoice number + date aligned to amount column */
 .invoice-header-grid {
     display: grid;
     grid-template-columns: 1fr 1fr 120px;
@@ -57,10 +61,6 @@ select, input, button {
 .amount {
     text-align: right;
     padding-right: 8px;
-}
-
-.total-row .label {
-    text-align: left;
 }
 
 .total-field {
