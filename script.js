@@ -66,8 +66,8 @@ function formatDate(date) {
     return `${dd}/${mm}/${yyyy}`;
 }
 
-// Main: generate PDF and open email
-async function generatePdfAndEmail() {
+// Generate PDF only
+function generatePDF() {
     const clientSelect = document.getElementById('clientSelect');
     const clientIndex = clientSelect.value;
 
@@ -115,11 +115,11 @@ async function generatePdfAndEmail() {
 
     // Build PDF
     const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
+    const doc = new jsPDF({ orientation: "portrait" });
 
     let y = 15;
 
-    // Header – ORIGINAL PC DOCTOR in Headhunter (simulated by font + style)
+    // Header – ORIGINAL PC DOCTOR in bold (Headhunter simulated)
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(18);
     doc.text('ORIGINAL PC DOCTOR', 10, y);
@@ -186,8 +186,21 @@ async function generatePdfAndEmail() {
 
     const fileName = `Tax_Invoice_${invoiceNumber}.pdf`;
     doc.save(fileName);
+}
 
-    // Open email (user manually attaches PDF)
+// Email only
+function emailInvoice() {
+    const clientSelect = document.getElementById('clientSelect');
+    const clientIndex = clientSelect.value;
+
+    if (clientIndex === '') {
+        alert('Please select a client.');
+        return;
+    }
+
+    const client = clients[clientIndex];
+    const invoiceNumber = generateInvoiceNumber(client.name);
+
     const subject = encodeURIComponent(`Tax Invoice ${invoiceNumber}`);
     const bodyText = [
         `Hi ${client.name},`,
