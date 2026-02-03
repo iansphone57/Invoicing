@@ -1,227 +1,122 @@
-// v1.00 – PDF-based invoicing (Adobe + Samsung tuned)
-<script src="headhunter.js"></script>
-<script src="script.js"></script>
+async function generatePDF() {
 
-let clients = [];
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
 
-// CSV upload
-function handleCSVUpload(event) {
-    const file = event.target.files[0];
-    if (!file) return;
+    // REGISTER THE FONT (headhunter.js already loaded it into VFS)
+    doc.addFont("headhunter.ttf", "headhunter", "normal");
 
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        const text = e.target.result;
-        parseCSV(text);
-    };
-    reader.readAsText(file);
-}
+    // ============================
+    // HEADER
+    // ============================
+    doc.setFont("headhunter", "normal");
+    doc.setFontSize(28);
+    doc.text("ORIGINAL PC DOCTOR", 105, 20, { align: "center" });
 
-function parseCSV(text) {
-    clients = [];
-    const lines = text.split("\n");
+    // Switch back to Helvetica for the rest
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(12);
 
-    lines.forEach(line => {
-        const [name, email] = line.split(",");
-        if (name && email) {
-            clients.push({
-                name: name.trim(),
-                email: email.trim()
-            });
-        }
-    });
+    // ============================
+    // BUSINESS DETAILS (EVEN SPACING)
+    // ============================
+    doc.text("Phone: 0402 026 000", 20, 35);
+    doc.text("Mobile: 0402 026 000", 20, 42);
+    doc.text("Email: originalpcdoctor@gmail.com", 20, 49);
 
-    populateClientDropdown();
-}
+    // ============================
+    // CLIENT DETAILS
+    // ============================
+    const clientName = document.getElementById("clientName").value;
+    const clientAddress = document.getElementById("clientAddress").value;
 
-function populateClientDropdown() {
-    const select = document.getElementById("clientSelect");
-    select.innerHTML = "";
+    doc.setFontSize(14);
+    doc.text("Invoice To:", 20, 65);
+    doc.setFontSize(12);
+    doc.text(clientName, 20, 72);
+    doc.text(clientAddress, 20, 79);
 
-    clients.forEach((client, index) => {
-        const opt = document.createElement("option");
-        opt.value = index;
-        opt.textContent = client.name;
-        select.appendChild(opt);
-    });
-}
+    // ============================
+    // INVOICE NUMBER + DATE
+    // ============================
+    const today = new Date();
+    const dateStr = today.toLocaleDateString("en-AU");
 
-// Invoice number
-function generateInvoiceNumber(name) {
-    const parts = name.trim().split(" ");
-    const last = parts[parts.length - 1][0].toUpperCase();
-    const first = parts[0][0].toUpperCase();
+    // Invoice number: initials + YYYYMMDD
+    const initials = clientName.split(" ").map(w => w[0]).join("").toUpperCase();
+    const invoiceNumber = `${initials}${today.getFullYear()}${String(today.getMonth()+1).padStart(2,"0")}${String(today.getDate()).padStart(2,"0")}`;
 
-    const now = new Date();
-    const yy = String(now.getFullYear()).slice(-2);
-    const mm = String(now.getMonth() + 1).padStart(2, "0");
-    const dd = String(now.getDate()).padStart(2, "0");
+    doc.text(`Invoice #: ${invoiceNumber}`, 150, 35);
+    doc.text(`Date: ${dateStr}`, 150, 42);
 
-    return `${last}${first}${yy}${mm}${dd}`;
-}
+    // ============================
+    // LINE ITEMS
+    // ============================
+    let y = 100;
 
-// Date
-function formatDate(date) {
-    const dd = String(date.getDate()).padStart(2, "0");
-    const mm = String(date.getMonth() + 1).padStart(2, "0");
-    const yyyy = date.getFullYear();
-    return `${dd}/${mm}/${yyyy}`;
-}
+    function addLine(label, amount, description) {
+        if (amount && amount.trim() !== "") {
+            doc.text(label, 20, y);
+            doc.text(`$${amount}`, 180, y, { align: "right" });
+            y += 7;
 
-// Generate PDF only
-function generatePDF() {
-    const clientSelect = document.getElementById('clientSelect');
-    const clientIndex = clientSelect.value;
-
-    if (clientIndex === '') {
-        alert('Please select a client.');
-        return;
-    }
-
-    const client = clients[clientIndex];
-    const invoiceNumber = generateInvoiceNumber(client.name);
-
-    const rows = document.querySelectorAll('.invoice-row');
-
-    let items = [];
-    let subtotal = 0;
-
-    rows.forEach(row => {
-        const dropdown = row.querySelector('.descSelect');
-        const descInput = row.querySelector('.descInput');
-        const amountInput = row.querySelector('.amount');
-
-        const amount = parseFloat(amountInput.value);
-        if (isNaN(amount) || amount <= 0) return;
-
-        let label = dropdown.value;
-
-        if (label === 'Parts' || label === 'Labour') {
-            const desc = descInput.value.trim();
-            if (desc !== '') {
-                label = `${label} (${desc})`;
+            if (description && description.trim() !== "") {
+                doc.setFontSize(11);
+                doc.text(description, 25, y);
+                doc.setFontSize(12);
+                y += 7;
             }
         }
-
-        items.push({ label, amount });
-        subtotal += amount;
-    });
-
-    if (items.length === 0) {
-        alert('Please enter at least one line with an amount.');
-        return;
     }
+
+    const partsAmount = document.getElementById("partsAmount").value;
+    const partsDesc = document.getElementById("partsDesc").value;
+
+    const labourAmount = document.getElementById("labourAmount").value;
+    const labourDesc = document.getElementById("labourDesc").value;
+
+    const calloutAmount = document.getElementById("calloutAmount").value;
+    const otherAmount = document.getElementById("otherAmount").value;
+
+    addLine("Parts", partsAmount, partsDesc);
+    addLine("Labour", labourAmount, labourDesc);
+    addLine("Callout Fee", calloutAmount);
+    addLine("Other", otherAmount);
+
+    // ============================
+    // TOTALS
+    // ============================
+    const subtotal =
+        (parseFloat(partsAmount) || 0) +
+        (parseFloat(labourAmount) || 0) +
+        (parseFloat(calloutAmount) || 0) +
+        (parseFloat(otherAmount) || 0);
 
     const gst = subtotal * 0.10;
     const total = subtotal + gst;
 
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ orientation: "portrait" });
-
-    const leftX = 10;
-    const rightX = 200; // Adobe-tuned right edge
-    let y = 15;
-
-    // HEADER
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(18);
-    doc.text('ORIGINAL PC DOCTOR', leftX, y);
-    y += 8;
-
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(11);
-
-    // Line 2
-    doc.text('Onsite Servicing Brisbane and Surrounds', leftX, y);
-    doc.text('ABN: 63159610829', rightX, y, { align: 'right' });
-    y += 6;
-
-    // Line 3
-    doc.text('Phone: 34 222 007', leftX, y);
-    doc.text('Mobile: 0403 168 740', 115, y);
-    doc.text('email: ian@pcdoc.net.au', rightX, y, { align: 'right' });
     y += 10;
+    doc.setFontSize(14);
+    doc.text("Subtotal:", 140, y);
+    doc.text(`$${subtotal.toFixed(2)}`, 200, y, { align: "right" });
 
-    // Invoice + date + client
-    const todayStr = formatDate(new Date());
-
-    doc.setFontSize(12);
-    doc.setFont('helvetica', 'bold');
-    doc.text(`Tax Invoice ${invoiceNumber}`, leftX, y);
-    doc.setFont('helvetica', 'normal');
-    doc.text(`Date: ${todayStr}`, rightX, y, { align: 'right' });
     y += 8;
+    doc.text("GST (10%):", 140, y);
+    doc.text(`$${gst.toFixed(2)}`, 200, y, { align: "right" });
 
-    doc.text(`Bill To: ${client.name}`, leftX, y);
-    y += 6;
-    doc.text(`${client.email}`, leftX, y);
-    y += 10;
+    y += 8;
+    doc.setFontSize(16);
+    doc.text("Total:", 140, y);
+    doc.text(`$${total.toFixed(2)}`, 200, y, { align: "right" });
 
-    // Items table
-    const body = items.map(item => [
-        item.label,
-        item.amount.toFixed(2)
-    ]);
+    // ============================
+    // FOOTER
+    // ============================
+    doc.setFontSize(10);
+    doc.text("Thank you for your business!", 105, 285, { align: "center" });
 
-    doc.autoTable({
-        startY: y,
-        margin: { left: leftX, right: 10 },
-        head: [['Description', 'Amount (AUD)']],
-        body,
-        styles: { font: 'helvetica', fontSize: 11 },
-        headStyles: { fillColor: [230, 230, 230] },
-        columnStyles: {
-            0: { cellWidth: 130 },
-            1: { cellWidth: 60, halign: 'right' } // aligns to rightX
-        }
-    });
-
-    const finalY = doc.lastAutoTable.finalY + 8;
-
-    // Totals aligned with amount column
-    doc.setFont('helvetica', 'bold');
-    doc.text('Subtotal:', rightX - 60, finalY, { align: 'right' });
-    doc.text(subtotal.toFixed(2), rightX, finalY, { align: 'right' });
-
-    doc.text('GST (10%):', rightX - 60, finalY + 6, { align: 'right' });
-    doc.text(gst.toFixed(2), rightX, finalY + 6, { align: 'right' });
-
-    doc.text('Total Including GST:', rightX - 60, finalY + 12, { align: 'right' });
-    doc.text(total.toFixed(2), rightX, finalY + 12, { align: 'right' });
-
-    // Footer
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(11);
-    doc.text('Thank you,', leftX, finalY + 24);
-    doc.text('Ian', leftX, finalY + 30);
-
-    const fileName = `Tax_Invoice_${invoiceNumber}.pdf`;
-    doc.save(fileName);
-}
-
-// Email only
-function emailInvoice() {
-    const clientSelect = document.getElementById('clientSelect');
-    const clientIndex = clientSelect.value;
-
-    if (clientIndex === '') {
-        alert('Please select a client.');
-        return;
-    }
-
-    const client = clients[clientIndex];
-    const invoiceNumber = generateInvoiceNumber(client.name);
-
-    const subject = encodeURIComponent(`Tax Invoice ${invoiceNumber}`);
-    const bodyText = [
-        `Hi ${client.name},`,
-        '',
-        'Please find attached your tax invoice.',
-        '',
-        'Regards,',
-        'Ian'
-    ].join('\n');
-
-    const mailto = `mailto:${encodeURIComponent(client.email)}?subject=${subject}&body=${encodeURIComponent(bodyText)}`;
-    window.location.href = mailto;
+    // ============================
+    // SAVE PDF
+    // ============================
+    doc.save(`Invoice-${invoiceNumber}.pdf`);
 }
