@@ -1,5 +1,5 @@
 // ============================
-// PC Doctor Invoicing - Version 1.01
+// PC Doctor Invoicing - Version 1.02
 // ============================
 
 const BUSINESS = {
@@ -153,7 +153,7 @@ function addRow() {
 }
 
 // ============================
-// GENERATE PDF
+// GENERATE PDF (with full footer)
 // ============================
 
 async function generatePDF() {
@@ -243,6 +243,44 @@ async function generatePDF() {
     doc.text("Total:", 120, y);
     doc.text(`$${total.toFixed(2)}`, 180, y, { align: "right" });
 
+    // FOOTER BLOCK
+    y += 15;
+    doc.setFontSize(11);
+
+    const footerText = `
+REGARDS
+IAN PATANE
+Dipl. Elec. Eng.
+___________________________________________________
+MANAGER
+
+TERMS: Strictly C.O.D.
+
+Payment Methods: Cheque, EFT
+EFT DETAILS: Bank: CBA, BSB: 064100, ACCOUNT: 10005106, NAME: ORIGINAL PC DOCTOR
+
+If using EFT you MUST email Internet Receipt Number after transfer. For reference
+details, please put YOUR COMPANY NAME or INVOICE Number so that I can administer
+payments quickly.
+
+The property and items of this invoice remain the property and possession of the seller
+and title to the goods does not pass to the purchaser until payment of this invoice
+and any associated invoice for labour or additional goods is paid in full and where
+paid by cheque, until such funds have been cleared in the seller’s bank account.
+
+Where payment has not been made in full within the trading terms herein the seller
+and its authorized agents and assigns hereby expressly reserve the right to recover
+the goods and the purchaser expressly authorizes the seller to enter such premises
+where the goods are located and to use such force as is reasonably necessary to effect
+return of same without liability for trespass, damage or loss occasioned to the purchaser
+in the course of such recovery. The purchaser hereby acknowledges and accepts
+the terms of sale herein.
+`;
+
+    const footerLines = doc.splitTextToSize(footerText, 180);
+    doc.text(footerLines, 15, y);
+
+    // FINAL LINE
     doc.setFontSize(10);
     doc.text("Thank you for your business!", 105, 285, { align: "center" });
 
@@ -250,93 +288,9 @@ async function generatePDF() {
 }
 
 // ============================
-// EMAIL INVOICE (Option A)
+// EMAIL BUTTON (manual attach workflow)
 // ============================
 
-async function emailInvoice() {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-
-    // Build PDF (same as generatePDF)
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(26);
-    doc.text("Tax Invoice", 105, 20, { align: "center" });
-
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(12);
-    doc.text(BUSINESS.name, 20, 35);
-    doc.text(`ABN: ${BUSINESS.abn}`, 20, 42);
-    doc.text(`Phone: ${BUSINESS.phone}`, 20, 49);
-    doc.text(`Mobile: ${BUSINESS.mobile}`, 20, 56);
-    doc.text(`Email: ${BUSINESS.email}`, 20, 63);
-
-    const clientName = document.getElementById("clientSelect").value || "Client";
-    const clientEmail = clientName.includes(",") ? clientName.split(",")[1] : "";
-
-    doc.setFontSize(14);
-    doc.text("Invoice To:", 20, 80);
-    doc.setFontSize(12);
-    doc.text(clientName, 20, 87);
-
-    const today = new Date();
-    const dateStr = today.toLocaleDateString("en-AU");
-    const initials = clientName ? clientName.split(" ").map(w => w[0]).join("").toUpperCase() : "INV";
-    const invoiceNumber = `${initials}${today.getFullYear()}${String(today.getMonth()+1).padStart(2,"0")}${String(today.getDate()).padStart(2,"0")}`;
-
-    doc.text(`Invoice #: ${invoiceNumber}`, 150, 35);
-    doc.text(`Date: ${dateStr}`, 150, 42);
-
-    let y = 110;
-    const rows = document.querySelectorAll(".invoice-row");
-
-    rows.forEach(row => {
-        const type = row.querySelector(".descSelect").value;
-        const desc = row.querySelector(".descInput").value.trim();
-        const amount = row.querySelector(".amount").value.trim();
-
-        if (amount !== "") {
-            doc.setFontSize(12);
-            doc.text(type, 20, y);
-            doc.text(`$${amount}`, 180, y, { align: "right" });
-            y += 7;
-
-            if (desc !== "") {
-                doc.setFontSize(11);
-                doc.text(desc, 25, y);
-                y += 7;
-            }
-        }
-    });
-
-    let subtotal = 0;
-    rows.forEach(row => {
-        const amount = parseFloat(row.querySelector(".amount").value) || 0;
-        subtotal += amount;
-    });
-
-    const gst = subtotal * 0.10;
-    const total = subtotal + gst;
-
-    y += 10;
-    doc.setFontSize(12);
-    doc.text("Subtotal:", 120, y);
-    doc.text(`$${subtotal.toFixed(2)}`, 180, y, { align: "right" });
-
-    y += 7;
-    doc.text("GST (10%):", 120, y);
-    doc.text(`$${gst.toFixed(2)}`, 180, y, { align: "right" });
-
-    y += 7;
-    doc.text("Total:", 120, y);
-    doc.text(`$${total.toFixed(2)}`, 180, y, { align: "right" });
-
-    // Convert PDF to Base64
-    const pdfBase64 = doc.output("datauristring");
-
-    // Build email
-    const subject = encodeURIComponent(`Tax Invoice - ${clientName}`);
-    const body = encodeURIComponent("Please find attached your tax invoice.\n\nRegards,\nOriginal PC Doctor");
-
-    // Open email app
-    window.location.href = `mailto:${clientEmail}?subject=${subject}&body=${body}`;
+function emailInvoice() {
+    alert("To send the invoice:\n\n1. Tap 'Generate PDF'\n2. Open Samsung Mail\n3. Attach the PDF from Downloads\n4. Send\n\n(Android does not allow automatic attachments from webpages.)");
 }
