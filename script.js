@@ -1,4 +1,4 @@
-// v1.00 – PDF-based invoicing
+// v1.00 – PDF-based invoicing (Adobe + Samsung tuned)
 
 let clients = [];
 
@@ -113,23 +113,31 @@ function generatePDF() {
     const gst = subtotal * 0.10;
     const total = subtotal + gst;
 
-    // Build PDF
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ orientation: "portrait" });
 
+    const leftX = 10;
+    const rightX = 200; // Adobe-tuned right edge
     let y = 15;
 
-    // Header – ORIGINAL PC DOCTOR in bold (Headhunter simulated)
+    // HEADER
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(18);
-    doc.text('ORIGINAL PC DOCTOR', 10, y);
+    doc.text('ORIGINAL PC DOCTOR', leftX, y);
     y += 8;
 
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(11);
-    doc.text('Onsite Servicing Brisbane and Surrounds                 ABN: 63159610829', 10, y);
+
+    // Line 2
+    doc.text('Onsite Servicing Brisbane and Surrounds', leftX, y);
+    doc.text('ABN: 63159610829', rightX, y, { align: 'right' });
     y += 6;
-    doc.text('Phone: 34 222 007      Mobile: 0403 168 740      email: ian@pcdoc.net.au', 10, y);
+
+    // Line 3
+    doc.text('Phone: 34 222 007', leftX, y);
+    doc.text('Mobile: 0403 168 740', 115, y);
+    doc.text('email: ian@pcdoc.net.au', rightX, y, { align: 'right' });
     y += 10;
 
     // Invoice + date + client
@@ -137,14 +145,14 @@ function generatePDF() {
 
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
-    doc.text(`Tax Invoice ${invoiceNumber}`, 10, y);
+    doc.text(`Tax Invoice ${invoiceNumber}`, leftX, y);
     doc.setFont('helvetica', 'normal');
-    doc.text(`Date: ${todayStr}`, 150, y, { align: 'right' });
+    doc.text(`Date: ${todayStr}`, rightX, y, { align: 'right' });
     y += 8;
 
-    doc.text(`Bill To: ${client.name}`, 10, y);
+    doc.text(`Bill To: ${client.name}`, leftX, y);
     y += 6;
-    doc.text(`${client.email}`, 10, y);
+    doc.text(`${client.email}`, leftX, y);
     y += 10;
 
     // Items table
@@ -155,34 +163,35 @@ function generatePDF() {
 
     doc.autoTable({
         startY: y,
+        margin: { left: leftX, right: 10 },
         head: [['Description', 'Amount (AUD)']],
         body,
         styles: { font: 'helvetica', fontSize: 11 },
         headStyles: { fillColor: [230, 230, 230] },
         columnStyles: {
-            0: { cellWidth: 120 },
-            1: { cellWidth: 40, halign: 'right' }
+            0: { cellWidth: 130 },
+            1: { cellWidth: 60, halign: 'right' } // aligns to rightX
         }
     });
 
     const finalY = doc.lastAutoTable.finalY + 8;
 
-    // Totals
+    // Totals aligned with amount column
     doc.setFont('helvetica', 'bold');
-    doc.text('Subtotal:', 130, finalY, { align: 'right' });
-    doc.text(subtotal.toFixed(2), 190, finalY, { align: 'right' });
+    doc.text('Subtotal:', rightX - 60, finalY, { align: 'right' });
+    doc.text(subtotal.toFixed(2), rightX, finalY, { align: 'right' });
 
-    doc.text('GST (10%):', 130, finalY + 6, { align: 'right' });
-    doc.text(gst.toFixed(2), 190, finalY + 6, { align: 'right' });
+    doc.text('GST (10%):', rightX - 60, finalY + 6, { align: 'right' });
+    doc.text(gst.toFixed(2), rightX, finalY + 6, { align: 'right' });
 
-    doc.text('Total Including GST:', 130, finalY + 12, { align: 'right' });
-    doc.text(total.toFixed(2), 190, finalY + 12, { align: 'right' });
+    doc.text('Total Including GST:', rightX - 60, finalY + 12, { align: 'right' });
+    doc.text(total.toFixed(2), rightX, finalY + 12, { align: 'right' });
 
     // Footer
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(11);
-    doc.text('Thank you,', 10, finalY + 24);
-    doc.text('Ian', 10, finalY + 30);
+    doc.text('Thank you,', leftX, finalY + 24);
+    doc.text('Ian', leftX, finalY + 30);
 
     const fileName = `Tax_Invoice_${invoiceNumber}.pdf`;
     doc.save(fileName);
