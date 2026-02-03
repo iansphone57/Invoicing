@@ -1,5 +1,5 @@
 // ============================
-// PC Doctor Invoicing - Version 1.03
+// PC Doctor Invoicing - Version 1.04
 // ============================
 
 const BUSINESS = {
@@ -153,7 +153,7 @@ function addRow() {
 }
 
 // ============================
-// GENERATE PDF (with adjusted footer)
+// GENERATE PDF (with improved footer)
 // ============================
 
 async function generatePDF() {
@@ -172,9 +172,13 @@ async function generatePDF() {
 
     doc.text(BUSINESS.name, 20, 35);
     doc.text(`ABN: ${BUSINESS.abn}`, 20, 42);
-    doc.text(`Phone: ${BUSINESS.phone}`, 20, 49);
-    doc.text(`Mobile: ${BUSINESS.mobile}`, 20, 56);
-    doc.text(`Email: ${BUSINESS.email}`, 20, 63);
+
+    // Phone/Mobile/Email on one line
+    doc.text(
+        `Phone: ${BUSINESS.phone}    Mobile: ${BUSINESS.mobile}    Email: ${BUSINESS.email}`,
+        20,
+        49
+    );
 
     // CLIENT NAME
     const clientName = document.getElementById("clientSelect").value || "Client";
@@ -243,7 +247,10 @@ async function generatePDF() {
     doc.text("Total:", 120, y);
     doc.text(`$${total.toFixed(2)}`, 180, y, { align: "right" });
 
-    // FOOTER BLOCK
+    // ============================
+    // FOOTER BLOCK (v1.04)
+    // ============================
+
     y += 15;
 
     // --- Top section (normal size) ---
@@ -265,31 +272,21 @@ details, please put YOUR COMPANY NAME or INVOICE Number so that I can administer
 payments quickly.
 `;
 
-    let lines = doc.splitTextToSize(footerTop, 180);
+    let lines = doc.splitTextToSize(footerTop, 185);
     doc.text(lines, 15, y);
     y += lines.length * 5 + 5;
 
-    // --- Legal block (smaller font) ---
+    // --- Legal block (smaller font, wider wrap) ---
     doc.setFontSize(9);
 
     const legalBlock = `
-The property and items of this invoice remain the property and possession of the seller
-and title to the goods does not pass to the purchaser until payment of this invoice
-and any associated invoice for labour or additional goods is paid in full and where
-paid by cheque, until such funds have been cleared in the seller’s bank account.
+The property and items of this invoice remain the property and possession of the seller and title to the goods does not pass to the purchaser until payment of this invoice and any associated invoice for labour or additional goods is paid in full and where paid by cheque, until such funds have been cleared in the seller’s bank account.
 
-Where payment has not been made in full within the trading terms herein the seller
-and its authorized agents and assigns hereby expressly reserve the right to recover
-the goods and the purchaser expressly authorizes the seller to enter such premises
-where the goods are located and to use such force as is reasonably necessary to effect
-return of same without liability for trespass, damage or loss occasioned to the purchaser
-in the course of such recovery. The purchaser hereby acknowledges and accepts
-the terms of sale herein.
+Where payment has not been made in full within the trading terms herein the seller and its authorized agents and assigns hereby expressly reserve the right to recover the goods and the purchaser expressly authorizes the seller to enter such premises where the goods are located and to use such force as is reasonably necessary to effect return of same without liability for trespass, damage or loss occasioned to the purchaser in the course of such recovery. The purchaser hereby acknowledges and accepts the terms of sale herein.
 `;
 
-    lines = doc.splitTextToSize(legalBlock, 180);
+    lines = doc.splitTextToSize(legalBlock, 195);
     doc.text(lines, 15, y);
-    // y updated but we don't need it further here
 
     // FINAL LINE
     doc.setFontSize(10);
