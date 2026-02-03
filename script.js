@@ -1,3 +1,4 @@
+console.log("PC Doctor Invoicing Script Loaded — v1.00");
 // =========================
 // GLOBAL CLIENT STORAGE
 // =========================
