@@ -91,9 +91,9 @@
     <div id="rows">
         <div class="invoice-row">
             <select class="descSelect">
-                <option>Labour</option>
-                <option>Parts</option>
                 <option>Travel</option>
+                <option>Parts</option>
+                <option>Labour</option>
                 <option>Other</option>
             </select>
 
@@ -103,7 +103,10 @@
     </div>
 
     <button onclick="addRow()">Add Row</button>
-    <button onclick="generatePdfAndEmail()">Generate PDF & Open Email</button>
+    <br><br>
+
+    <button onclick="generatePDF()">Generate PDF</button>
+    <button onclick="emailInvoice()">Email Invoice</button>
 
     <script src="script.js?v=100"></script>
 
@@ -116,9 +119,9 @@
 
             div.innerHTML = `
                 <select class="descSelect">
-                    <option>Labour</option>
-                    <option>Parts</option>
                     <option>Travel</option>
+                    <option>Parts</option>
+                    <option>Labour</option>
                     <option>Other</option>
                 </select>
 
