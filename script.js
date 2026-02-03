@@ -292,5 +292,17 @@ the terms of sale herein.
 // ============================
 
 function emailInvoice() {
-    alert("To send the invoice:\n\n1. Tap 'Generate PDF'\n2. Open Samsung Mail\n3. Attach the PDF from Downloads\n4. Send\n\n(Android does not allow automatic attachments from webpages.)");
+    const clientName = document.getElementById("clientSelect").value || "";
+    const clientEmail = clientName.includes(",") ? clientName.split(",")[1] : "";
+
+    if (!clientEmail) {
+        alert("No client email found.");
+        return;
+    }
+
+    const subject = encodeURIComponent("Tax Invoice");
+    const body = encodeURIComponent("Please find attached your tax invoice.\n\nRegards,\nOriginal PC Doctor");
+
+    // Open Samsung Mail (or default email app) with TO, SUBJECT, BODY pre-filled
+    window.location.href = `mailto:${clientEmail}?subject=${subject}&body=${body}`;
 }
