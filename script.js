@@ -1,5 +1,5 @@
 // ============================
-// PC Doctor Invoicing - Version 1.08
+// PC Doctor Invoicing - Version 1.09
 // ============================
 
 const BUSINESS = {
@@ -124,7 +124,7 @@ function downloadUpdatedCSV() {
 }
 
 // ============================
-// ADD ROW (Row 1 = Travel, Row 2+ = Parts)
+// ADD ROW
 // ============================
 
 function addRow() {
@@ -153,7 +153,7 @@ function addRow() {
 }
 
 // ============================
-// GENERATE PDF (v1.08)
+// GENERATE PDF (v1.09)
 // ============================
 
 async function generatePDF() {
@@ -162,10 +162,9 @@ async function generatePDF() {
     const doc = new jsPDF();
 
     // ============================
-    // HEADER (v1.08)
+    // HEADER (v1.09)
     // ============================
 
-    // LINE 1 — Tax Invoice + Invoice Number
     const clientName = document.getElementById("clientSelect").value || "Client";
     const today = new Date();
     const dateStr = today.toLocaleDateString("en-AU");
@@ -176,6 +175,7 @@ async function generatePDF() {
 
     const invoiceNumber = `${initials}${today.getFullYear()}${String(today.getMonth()+1).padStart(2,"0")}${String(today.getDate()).padStart(2,"0")}`;
 
+    // LINE 1 — Tax Invoice + Invoice Number
     doc.setFont("helvetica", "bold");
     doc.setFontSize(26);
     doc.text(`Tax Invoice   ${invoiceNumber}`, 105, 20, { align: "center" });
@@ -186,12 +186,12 @@ async function generatePDF() {
 
     doc.text(BUSINESS.name, 20, 35);
     doc.text(`ABN: ${BUSINESS.abn}`, 105, 35, { align: "center" });
-    doc.text(`Date: ${dateStr}`, 180, 35, { align: "right" });
+    doc.text(`Date: ${dateStr}`, 190, 35, { align: "right" }); // moved right
 
     // LINE 3 — Phone / Mobile / Email
     doc.text(`Phone: ${BUSINESS.phone}`, 20, 42);
-    doc.text(`Mobile: ${BUSINESS.mobile}`, 105, 42, { align: "center" });
-    doc.text(`Email: ${BUSINESS.email}`, 180, 42, { align: "right" });
+    doc.text(`Mobile: ${BUSINESS.mobile}`, 99, 42); // aligned under "A" of ABN
+    doc.text(`Email: ${BUSINESS.email}`, 190, 42, { align: "right" }); // moved right
 
     // ============================
     // CLIENT NAME
@@ -255,12 +255,11 @@ async function generatePDF() {
     doc.text(`$${total.toFixed(2)}`, 180, y, { align: "right" });
 
     // ============================
-    // FOOTER (v1.08)
+    // FOOTER (v1.09)
     // ============================
 
     y += 15;
 
-    // "If using EFT..." paragraph (smaller by 1pt)
     doc.setFontSize(10);
 
     const footerTop = `
@@ -274,14 +273,15 @@ TERMS: Strictly C.O.D.
 Payment Methods: Cheque, EFT
 EFT DETAILS: Bank: CBA, BSB: 064100, ACCOUNT: 10005106, NAME: ORIGINAL PC DOCTOR
 
-If using EFT you MUST email Internet Receipt Number after transfer. For reference details, please put YOUR COMPANY NAME or INVOICE Number so that I can administer payments quickly.
+If using EFT you MUST email Internet Receipt Number after transfer. For reference details, please put
+YOUR COMPANY NAME or INVOICE Number so that I can administer payments quickly.
 `;
 
     let lines = doc.splitTextToSize(footerTop, 200);
     doc.text(lines, 15, y);
     y += lines.length * 5 + 10;
 
-    // Legal block (smaller, narrower wrap, moved up 2 lines)
+    // Legal block
     doc.setFontSize(9);
 
     const legalBlock = `
