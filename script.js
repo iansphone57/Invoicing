@@ -1,4 +1,8 @@
 // ============================
+// PC Doctor Invoicing - Version 1.03
+// ============================
+
+// ============================
 // LOAD CLIENTS CSV
 // ============================
 
@@ -36,7 +40,32 @@ function parseClientsCSV(csvText) {
 }
 
 // ============================
-// GENERATE PDF (VERSION 1.02)
+// ADD ROW
+// ============================
+
+function addRow() {
+    const container = document.getElementById("rows");
+
+    const div = document.createElement("div");
+    div.className = "invoice-row";
+
+    div.innerHTML = `
+        <select class="descSelect">
+            <option>Travel</option>
+            <option>Parts</option>
+            <option>Labour</option>
+            <option>Other</option>
+        </select>
+
+        <input type="text" class="descInput" placeholder="Description (optional)">
+        <input type="number" class="amount" placeholder="Amount">
+    `;
+
+    container.appendChild(div);
+}
+
+// ============================
+// GENERATE PDF (VERSION 1.03)
 // ============================
 
 async function generatePDF() {
