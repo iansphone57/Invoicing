@@ -12,21 +12,47 @@ document.addEventListener('DOMContentLoaded', () => {
     setupDescriptionDropdowns();
     setupAmountListeners();
 
-    document.getElementById('csvInput').addEventListener('change', handleCsvUpload);
+    const csvInput = document.getElementById('csvInput');
+    if (csvInput) {
+        csvInput.addEventListener('change', handleCsvUpload);
+    } else {
+        console.log("ERROR: csvInput element not found");
+    }
+
     document.getElementById('clientSelect').addEventListener('change', updateInvoiceHeader);
     document.getElementById('sendBtn').addEventListener('click', sendInvoice);
 });
 
 function handleCsvUpload(event) {
     const file = event.target.files[0];
-    if (!file) return;
+    if (!file) {
+        alert("No CSV file selected");
+        return;
+    }
 
     const reader = new FileReader();
     reader.onload = e => {
-        const text = e.target.result;
-        clients = parseCsv(text);
-        populateClientSelect(clients);
+        try {
+            const text = e.target.result;
+            clients = parseCsv(text);
+
+            if (!clients.length) {
+                alert("CSV loaded but contains no clients");
+                return;
+            }
+
+            populateClientSelect(clients);
+            console.log("CSV loaded successfully:", clients);
+
+        } catch (err) {
+            alert("Error reading CSV: " + err.message);
+        }
     };
+
+    reader.onerror = () => {
+        alert("Failed to read CSV file");
+    };
+
     reader.readAsText(file);
 }
 
@@ -47,6 +73,7 @@ function parseCsv(text) {
 function populateClientSelect(clients) {
     const sel = document.getElementById('clientSelect');
     sel.innerHTML = '<option value="">Select client...</option>';
+
     clients.forEach((c, index) => {
         const opt = document.createElement('option');
         opt.value = index;
@@ -203,43 +230,27 @@ function sendInvoice() {
 
     let bodyLines = [];
 
-    // Headhunter header (if installed)
+    // Header
     bodyLines.push('ORIGINAL PC DOCTOR');
-
-    // ABN aligned to column 80
-    const abnLine = 'Onsite Servicing Brisbane and Surrounds'.padEnd(61, ' ') + 'ABN: 63159610829';
-    bodyLines.push(abnLine);
-
-    // Extra spaces before Mobile and email
-    const contactLine =
-        'Phone: 34 222 007' +
-        '      ' +
-        'Mobile: 0403 168 740' +
-        '      ' +
-        'email: ian@pcdoc.net.au';
-    bodyLines.push(contactLine);
-
+    bodyLines.push('Onsite Servicing Brisbane and Surrounds'.padEnd(61, ' ') + 'ABN: 63159610829');
+    bodyLines.push('Phone: 34 222 007      Mobile: 0403 168 740      email: ian@pcdoc.net.au');
     bodyLines.push('');
 
-    // Invoice + Date aligned to column 80
+    // Invoice + Date
     const dateStr = `Date: ${formatDate(new Date())}`;
     const invoiceStr = `Tax Invoice ${invoiceNumber}`;
-    const invoiceLine = invoiceStr.padEnd(80 - dateStr.length, ' ') + dateStr;
-    bodyLines.push(invoiceLine);
-
+    bodyLines.push(invoiceStr.padEnd(80 - dateStr.length, ' ') + dateStr);
     bodyLines.push('');
 
-    // Line items aligned
+    // Items
     items.forEach(item => {
-        const label = item.label;
         const amount = formatMoney(item.amount);
-        const line = label.padEnd(80 - amount.length, ' ') + amount;
-        bodyLines.push(line);
+        bodyLines.push(item.label.padEnd(80 - amount.length, ' ') + amount);
     });
 
     bodyLines.push('');
 
-    // Totals aligned
+    // Totals
     const subtotalStr = formatMoney(subtotal);
     bodyLines.push('Subtotal:'.padEnd(80 - subtotalStr.length, ' ') + subtotalStr);
 
