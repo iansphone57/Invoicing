@@ -1,189 +1,8 @@
-alert("script.js loaded");
-const DESCRIPTION_OPTIONS = [
-    'Onsite Service Call',
-    'Parts',
-    'Labour',
-    'Travel',
-    'Other'
-];
-
-let clients = [];
-
-document.addEventListener('DOMContentLoaded', () => {
-    setupDescriptionDropdowns();
-    setupAmountListeners();
-
-    const csvInput = document.getElementById('csvInput');
-    if (csvInput) {
-        csvInput.addEventListener('change', handleCsvUpload);
-    } else {
-        console.log("ERROR: csvInput element not found");
-    }
-
-    document.getElementById('clientSelect').addEventListener('change', updateInvoiceHeader);
-    document.getElementById('sendBtn').addEventListener('click', sendInvoice);
-});
-
-function handleCsvUpload(event) {
-    const file = event.target.files[0];
-    if (!file) {
-        alert("No CSV file selected");
-        return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = e => {
-        try {
-            const text = e.target.result;
-            clients = parseCsv(text);
-
-            if (!clients.length) {
-                alert("CSV loaded but contains no clients");
-                return;
-            }
-
-            populateClientSelect(clients);
-            console.log("CSV loaded successfully:", clients);
-
-        } catch (err) {
-            alert("Error reading CSV: " + err.message);
-        }
-    };
-
-    reader.onerror = () => {
-        alert("Failed to read CSV file");
-    };
-
-    reader.readAsText(file);
-}
-
-function parseCsv(text) {
-    return text
-        .split('\n')
-        .map(line => line.trim())
-        .filter(line => line.length > 0)
-        .map(line => {
-            const parts = line.split(',');
-            return {
-                name: parts[0].trim(),
-                email: (parts[1] || '').trim()
-            };
-        });
-}
-
-function populateClientSelect(clients) {
-    const sel = document.getElementById('clientSelect');
-    sel.innerHTML = '<option value="">Select client...</option>';
-
-    clients.forEach((c, index) => {
-        const opt = document.createElement('option');
-        opt.value = index;
-        opt.textContent = c.name;
-        sel.appendChild(opt);
-    });
-}
-
-function setupDescriptionDropdowns() {
-    const rows = document.querySelectorAll('.invoice-row');
-
-    rows.forEach(row => {
-        const dropdown = row.querySelector('.descSelect');
-        const descInput = row.querySelector('.descInput');
-
-        DESCRIPTION_OPTIONS.forEach(optText => {
-            const opt = document.createElement('option');
-            opt.value = optText;
-            opt.textContent = optText;
-            dropdown.appendChild(opt);
-        });
-
-        dropdown.addEventListener('change', () => {
-            if (dropdown.value === 'Parts' || dropdown.value === 'Labour') {
-                dropdown.classList.add('hidden');
-                descInput.classList.remove('hidden');
-                descInput.placeholder = dropdown.value === 'Parts'
-                    ? 'Enter part description'
-                    : 'Enter labour description';
-            } else {
-                dropdown.classList.remove('hidden');
-                descInput.classList.add('hidden');
-                descInput.value = '';
-            }
-        });
-    });
-}
-
-function setupAmountListeners() {
-    const amountInputs = document.querySelectorAll('input.amount');
-    amountInputs.forEach(inp => {
-        inp.addEventListener('input', updateTotals);
-    });
-}
-
-function updateTotals() {
-    const amountInputs = document.querySelectorAll('input.amount');
-    let subtotal = 0;
-    amountInputs.forEach(inp => {
-        const val = parseFloat(inp.value);
-        if (!isNaN(val)) subtotal += val;
-    });
-
-    const gst = subtotal * 0.10;
-    const total = subtotal + gst;
-
-    document.getElementById('subtotalDisplay').textContent = formatMoney(subtotal);
-    document.getElementById('gstDisplay').textContent = formatMoney(gst);
-    document.getElementById('totalDisplay').textContent = formatMoney(total);
-}
-
-function formatMoney(num) {
-    return '$' + num.toFixed(2);
-}
-
-function formatDate(d) {
-    const dd = String(d.getDate()).padStart(2, '0');
-    const mm = String(d.getMonth() + 1).padStart(2, '0');
-    const yyyy = d.getFullYear();
-    return `${dd}/${mm}/${yyyy}`;
-}
-
-function updateInvoiceHeader() {
-    const clientSelect = document.getElementById('clientSelect');
-    const index = clientSelect.value;
-
-    const numberDisplay = document.getElementById('invoiceNumberDisplay');
-    const dateDisplay = document.getElementById('invoiceDateDisplay');
-
-    if (index === '') {
-        numberDisplay.textContent = '';
-        dateDisplay.textContent = '';
-        return;
-    }
-
-    const client = clients[index];
-    const invoiceNumber = generateInvoiceNumber(client.name);
-
-    numberDisplay.textContent = `Tax Invoice: ${invoiceNumber}`;
-    dateDisplay.textContent = `Date: ${formatDate(new Date())}`;
-}
-
-function generateInvoiceNumber(fullName) {
-    const parts = fullName.trim().split(' ');
-    const last = parts[parts.length - 1];
-    const first = parts[0];
-
-    const lastInitial = last.charAt(0).toUpperCase();
-    const firstInitial = first.charAt(0).toUpperCase();
-
-    const now = new Date();
-    const yy = String(now.getFullYear()).slice(-2);
-    const mm = String(now.getMonth() + 1).padStart(2, '0');
-    const dd = String(now.getDate()).padStart(2, '0');
-
-    return `${lastInitial}${firstInitial}${yy}${mm}${dd}`;
-}
-
 function sendInvoice() {
+    const FIG = "\u2007"; // U+2007 FIGURE SPACE
+    const COL_WIDTH = 80;
+    const MAX_LABEL = 50; // Option C
+
     const clientSelect = document.getElementById('clientSelect');
     const clientIndex = clientSelect.value;
 
@@ -217,6 +36,10 @@ function sendInvoice() {
             }
         }
 
+        if (label.length > MAX_LABEL) {
+            label = label.substring(0, MAX_LABEL);
+        }
+
         items.push({ label, amount });
         subtotal += amount;
     });
@@ -229,44 +52,64 @@ function sendInvoice() {
     const gst = subtotal * 0.10;
     const total = subtotal + gst;
 
+    // Helper: pad with FIGURE SPACES
+    function padFig(str, totalWidth) {
+        const needed = totalWidth - str.length;
+        return needed > 0 ? str + FIG.repeat(needed) : str;
+    }
+
+    // Helper: right-align to column 80
+    function rightAlign(str) {
+        const needed = COL_WIDTH - str.length;
+        return FIG.repeat(needed) + str;
+    }
+
+    // Helper: format money with decimal alignment
+    function money(num) {
+        return num.toFixed(2); // no $ yet
+    }
+
     let bodyLines = [];
 
     // Header
-    bodyLines.push('ORIGINAL PC DOCTOR');
-    bodyLines.push('Onsite Servicing Brisbane and Surrounds'.padEnd(61, ' ') + 'ABN: 63159610829');
-    bodyLines.push('Phone: 34 222 007      Mobile: 0403 168 740      email: ian@pcdoc.net.au');
-    bodyLines.push('');
+    bodyLines.push("ORIGINAL PC DOCTOR");
+    bodyLines.push("Onsite Servicing Brisbane and Surrounds".padEnd(61, " ") + "ABN: 63159610829");
+    bodyLines.push("Phone: 34 222 007      Mobile: 0403 168 740      email: ian@pcdoc.net.au");
+    bodyLines.push("");
 
     // Invoice + Date
-    const dateStr = `Date: ${formatDate(new Date())}`;
-    const invoiceStr = `Tax Invoice ${invoiceNumber}`;
-    bodyLines.push(invoiceStr.padEnd(80 - dateStr.length, ' ') + dateStr);
-    bodyLines.push('');
+    const dateStr = "Date: " + formatDate(new Date());
+    const invoiceStr = "Tax Invoice " + invoiceNumber;
+    bodyLines.push(padFig(invoiceStr, COL_WIDTH - dateStr.length) + dateStr);
+    bodyLines.push("");
 
     // Items
     items.forEach(item => {
-        const amount = formatMoney(item.amount);
-        bodyLines.push(item.label.padEnd(80 - amount.length, ' ') + amount);
+        const amt = "$" + money(item.amount);
+        const label = item.label;
+
+        const line = padFig(label, COL_WIDTH - amt.length) + amt;
+        bodyLines.push(line);
     });
 
-    bodyLines.push('');
+    bodyLines.push("");
 
     // Totals
-    const subtotalStr = formatMoney(subtotal);
-    bodyLines.push('Subtotal:'.padEnd(80 - subtotalStr.length, ' ') + subtotalStr);
+    const subStr = "$" + money(subtotal);
+    bodyLines.push(padFig("Subtotal:", COL_WIDTH - subStr.length) + subStr);
 
-    const gstStr = formatMoney(gst);
-    bodyLines.push('GST (10%):'.padEnd(80 - gstStr.length, ' ') + gstStr);
+    const gstStr = "$" + money(gst);
+    bodyLines.push(padFig("GST (10%):", COL_WIDTH - gstStr.length) + gstStr);
 
-    const totalStr = formatMoney(total);
-    bodyLines.push('Total Including GST:'.padEnd(80 - totalStr.length, ' ') + totalStr);
+    const totalStr = "$" + money(total);
+    bodyLines.push(padFig("Total Including GST:", COL_WIDTH - totalStr.length) + totalStr);
 
-    bodyLines.push('');
-    bodyLines.push('Thank you,');
-    bodyLines.push('Ian');
+    bodyLines.push("");
+    bodyLines.push("Thank you,");
+    bodyLines.push("Ian");
 
     const subject = encodeURIComponent(`Tax Invoice ${invoiceNumber}`);
-    const body = encodeURIComponent(bodyLines.join('\n'));
+    const body = encodeURIComponent(bodyLines.join("\n"));
 
     window.location.href = `mailto:${encodeURIComponent(client.email)}?subject=${subject}&body=${body}`;
 }
