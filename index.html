@@ -1,19 +1,16 @@
-<script src="script.js"></script>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes">
 
     <title>PC Doctor Invoicing</title>
 
-    <!-- Headhunter font -->
+    <!-- Headhunter font (for on‑screen display only) -->
     <link href="https://fonts.cdnfonts.com/css/headhunter" rel="stylesheet">
 
-    <!-- jsPDF + AutoTable -->
+    <!-- jsPDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 
     <style>
         body {
@@ -54,11 +51,6 @@
             margin-bottom: 10px;
         }
 
-        .invoice-row input,
-        .invoice-row select {
-            margin-right: 10px;
-        }
-
         #clientSelect {
             margin-bottom: 15px;
         }
@@ -75,7 +67,7 @@
     <h1>
         <span class="pcdoctor">PC Doctor</span>
         Invoicing
-        <span id="version">v1.02</span>
+        <span id="version">v1.03</span>
     </h1>
 
     <h3>Load Clients CSV</h3>
@@ -109,30 +101,8 @@
     <button onclick="generatePDF()">Generate PDF</button>
     <button onclick="emailInvoice()">Email Invoice</button>
 
-    <script src="script.js?v=100"></script>
-
-    <script>
-        function addRow() {
-            const container = document.getElementById("rows");
-
-            const div = document.createElement("div");
-            div.className = "invoice-row";
-
-            div.innerHTML = `
-                <select class="descSelect">
-                    <option>Travel</option>
-                    <option>Parts</option>
-                    <option>Labour</option>
-                    <option>Other</option>
-                </select>
-
-                <input type="text" class="descInput" placeholder="Description (optional)">
-                <input type="number" class="amount" placeholder="Amount">
-            `;
-
-            container.appendChild(div);
-        }
-    </script>
+    <!-- Load JS last -->
+    <script src="script.js?v=103"></script>
 
 </body>
 </html>
