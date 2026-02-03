@@ -1,5 +1,5 @@
 // ============================
-// PC Doctor Invoicing - Version 1.06
+// PC Doctor Invoicing - Version 1.07
 // ============================
 
 const BUSINESS = {
@@ -153,7 +153,7 @@ function addRow() {
 }
 
 // ============================
-// GENERATE PDF (v1.06)
+// GENERATE PDF (v1.07)
 // ============================
 
 async function generatePDF() {
@@ -173,13 +173,11 @@ async function generatePDF() {
     doc.text(BUSINESS.name, 20, 35);
     doc.text(`ABN: ${BUSINESS.abn}`, 20, 42);
 
-    // FIXED: Phone/Mobile/Email on one line
+    // FIXED: Phone/Mobile/Email in aligned columns
     doc.setFontSize(10.5);
-    doc.text(
-        `Phone: ${BUSINESS.phone}    Mobile: ${BUSINESS.mobile}    Email: ${BUSINESS.email}`,
-        20,
-        49
-    );
+    doc.text(`Phone: ${BUSINESS.phone}`, 20, 49);
+    doc.text(`Mobile: ${BUSINESS.mobile}`, 80, 49);
+    doc.text(`Email: ${BUSINESS.email}`, 140, 49);
 
     // CLIENT NAME
     const clientName = document.getElementById("clientSelect").value || "Client";
@@ -249,7 +247,7 @@ async function generatePDF() {
     doc.text(`$${total.toFixed(2)}`, 180, y, { align: "right" });
 
     // ============================
-    // FOOTER BLOCK (v1.06)
+    // FOOTER BLOCK (v1.07)
     // ============================
 
     y += 15;
@@ -277,7 +275,7 @@ payments quickly.
     doc.text(lines, 15, y);
     y += lines.length * 5 + 10; // 2 blank lines before legal block
 
-    // --- Legal block (smaller font, wider wrap) ---
+    // --- Legal block (smaller font, wider wrap, moved up 2 lines) ---
     doc.setFontSize(9);
 
     const legalBlock = `
@@ -286,7 +284,7 @@ The property and items of this invoice remain the property and possession of the
 Where payment has not been made in full within the trading terms herein the seller and its authorized agents and assigns hereby expressly reserve the right to recover the goods and the purchaser expressly authorizes the seller to enter such premises where the goods are located and to use such force as is reasonably necessary to effect return of same without liability for trespass, damage or loss occasioned to the purchaser in the course of such recovery. The purchaser hereby acknowledges and accepts the terms of sale herein.
 `;
 
-    lines = doc.splitTextToSize(legalBlock, 200);
+    lines = doc.splitTextToSize(legalBlock, 185);
     doc.text(lines, 15, y);
 
     // FINAL LINE
