@@ -1,4 +1,6 @@
 // v1.00 – PDF-based invoicing (Adobe + Samsung tuned)
+<script src="headhunter.js"></script>
+<script src="script.js"></script>
 
 let clients = [];
 
