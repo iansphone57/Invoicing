@@ -44,7 +44,7 @@ async function generatePDF() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
 
-    // HEADER (Helvetica only)
+    // HEADER
     doc.setFont("helvetica", "bold");
     doc.setFontSize(26);
     doc.text("ORIGINAL PC DOCTOR", 105, 20, { align: "center" });
@@ -57,64 +57,64 @@ async function generatePDF() {
     doc.text("Mobile: 0402 026 000", 20, 42);
     doc.text("Email: originalpcdoctor@gmail.com", 20, 49);
 
-    // CLIENT DETAILS
-    const clientName = document.getElementById("clientName").value;
-    const clientAddress = document.getElementById("clientAddress").value;
+    // CLIENT NAME (from dropdown)
+    const clientName = document.getElementById("clientSelect").value;
 
     doc.setFontSize(14);
     doc.text("Invoice To:", 20, 65);
     doc.setFontSize(12);
     doc.text(clientName, 20, 72);
-    doc.text(clientAddress, 20, 79);
 
     // INVOICE NUMBER + DATE
     const today = new Date();
     const dateStr = today.toLocaleDateString("en-AU");
 
-    const initials = clientName.split(" ").map(w => w[0]).join("").toUpperCase();
+    const initials = clientName
+        ? clientName.split(" ").map(w => w[0]).join("").toUpperCase()
+        : "INV";
+
     const invoiceNumber = `${initials}${today.getFullYear()}${String(today.getMonth()+1).padStart(2,"0")}${String(today.getDate()).padStart(2,"0")}`;
 
     doc.text(`Invoice #: ${invoiceNumber}`, 150, 35);
     doc.text(`Date: ${dateStr}`, 150, 42);
 
-    // LINE ITEMS
+    // ============================
+    // READ DYNAMIC ROWS
+    // ============================
+
     let y = 100;
 
-    function addLine(label, amount, description) {
-        if (amount && amount.trim() !== "") {
-            doc.text(label, 20, y);
+    const rows = document.querySelectorAll(".invoice-row");
+
+    rows.forEach(row => {
+        const type = row.querySelector(".descSelect").value;
+        const desc = row.querySelector(".descInput").value.trim();
+        const amount = row.querySelector(".amount").value.trim();
+
+        if (amount !== "") {
+            doc.text(type, 20, y);
             doc.text(`$${amount}`, 180, y, { align: "right" });
             y += 7;
 
-            if (description && description.trim() !== "") {
+            if (desc !== "") {
                 doc.setFontSize(11);
-                doc.text(description, 25, y);
+                doc.text(desc, 25, y);
                 doc.setFontSize(12);
                 y += 7;
             }
         }
-    }
+    });
 
-    const partsAmount = document.getElementById("partsAmount").value;
-    const partsDesc = document.getElementById("partsDesc").value;
-
-    const labourAmount = document.getElementById("labourAmount").value;
-    const labourDesc = document.getElementById("labourDesc").value;
-
-    const calloutAmount = document.getElementById("calloutAmount").value;
-    const otherAmount = document.getElementById("otherAmount").value;
-
-    addLine("Parts", partsAmount, partsDesc);
-    addLine("Labour", labourAmount, labourDesc);
-    addLine("Callout Fee", calloutAmount);
-    addLine("Other", otherAmount);
-
+    // ============================
     // TOTALS
-    const subtotal =
-        (parseFloat(partsAmount) || 0) +
-        (parseFloat(labourAmount) || 0) +
-        (parseFloat(calloutAmount) || 0) +
-        (parseFloat(otherAmount) || 0);
+    // ============================
+
+    let subtotal = 0;
+
+    rows.forEach(row => {
+        const amount = parseFloat(row.querySelector(".amount").value) || 0;
+        subtotal += amount;
+    });
 
     const gst = subtotal * 0.10;
     const total = subtotal + gst;
