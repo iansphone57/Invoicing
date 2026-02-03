@@ -189,7 +189,7 @@ function sendInvoice() {
             }
         }
 
-        lines.push(`${label}: ${formatMoney(amount)}`);
+        lines.push({ label, amount });
         subtotal += amount;
     });
 
@@ -201,27 +201,55 @@ function sendInvoice() {
     const gst = subtotal * 0.10;
     const total = subtotal + gst;
 
+    // Build email body with fixed-width alignment
     let bodyLines = [];
 
-    // Business header (email only)
+    // Headhunter header (if installed)
     bodyLines.push('ORIGINAL PC DOCTOR');
-    bodyLines.push('Onsite Servicing Brisbane and Surrounds        ABN: 63159610829');
-    bodyLines.push('Phone: 34 222 007    Mobile: 0403 168 740    email: ian@pcdoc.net.au');
+
+    // ABN aligned to column 80
+    const abnLine = 'Onsite Servicing Brisbane and Surrounds'.padEnd(61, ' ') + 'ABN: 63159610829';
+    bodyLines.push(abnLine);
+
+    // Extra spaces before Mobile and email
+    const contactLine =
+        'Phone: 34 222 007' +
+        '      ' + // 6 spaces before Mobile
+        'Mobile: 0403 168 740' +
+        '      ' + // 6 spaces before email
+        'email: ian@pcdoc.net.au';
+    bodyLines.push(contactLine);
+
     bodyLines.push('');
 
-    // Invoice + Date on same line
+    // Tax Invoice + Date aligned to column 80
     const dateStr = `Date: ${formatDate(new Date())}`;
     const invoiceStr = `Tax Invoice ${invoiceNumber}`;
-    const combinedLine = invoiceStr.padEnd(60, ' ') + dateStr;
+    const invoiceLine = invoiceStr.padEnd(80 - dateStr.length, ' ') + dateStr;
+    bodyLines.push(invoiceLine);
 
-    bodyLines.push(combinedLine);
     bodyLines.push('');
 
-    lines.forEach(l => bodyLines.push(l));
+    // Line items aligned
+    lines.forEach(item => {
+        const label = item.label;
+        const amount = formatMoney(item.amount);
+        const line = label.padEnd(80 - amount.length, ' ') + amount;
+        bodyLines.push(line);
+    });
+
     bodyLines.push('');
-    bodyLines.push(`Subtotal: ${formatMoney(subtotal)}`);
-    bodyLines.push(`GST (10%): ${formatMoney(gst)}`);
-    bodyLines.push(`Total Including GST: ${formatMoney(total)}`);
+
+    // Totals aligned
+    const subtotalStr = formatMoney(subtotal);
+    bodyLines.push('Subtotal:'.padEnd(80 - subtotalStr.length, ' ') + subtotalStr);
+
+    const gstStr = formatMoney(gst);
+    bodyLines.push('GST (10%):'.padEnd(80 - gstStr.length, ' ') + gstStr);
+
+    const totalStr = formatMoney(total);
+    bodyLines.push('Total Including GST:'.padEnd(80 - totalStr.length, ' ') + totalStr);
+
     bodyLines.push('');
     bodyLines.push('Thank you,');
     bodyLines.push('Ian');
