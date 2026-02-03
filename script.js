@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupAmountListeners();
 
     document.getElementById('csvInput').addEventListener('change', handleCsvUpload);
+    document.getElementById('clientSelect').addEventListener('change', updateInvoiceNumber);
     document.getElementById('sendBtn').addEventListener('click', sendInvoice);
 });
 
@@ -55,13 +56,31 @@ function populateClientSelect(clients) {
 }
 
 function setupDescriptionDropdowns() {
-    const descSelects = document.querySelectorAll('select.desc');
-    descSelects.forEach(sel => {
+    const rows = document.querySelectorAll('.invoice-row');
+
+    rows.forEach(row => {
+        const dropdown = row.querySelector('.descSelect');
+        const descInput = row.querySelector('.descInput');
+
         DESCRIPTION_OPTIONS.forEach(optText => {
             const opt = document.createElement('option');
             opt.value = optText;
             opt.textContent = optText;
-            sel.appendChild(opt);
+            dropdown.appendChild(opt);
+        });
+
+        dropdown.addEventListener('change', () => {
+            if (dropdown.value === 'Parts' || dropdown.value === 'Labour') {
+                dropdown.classList.add('hidden');
+                descInput.classList.remove('hidden');
+                descInput.placeholder = dropdown.value === 'Parts'
+                    ? 'Enter part description'
+                    : 'Enter labour description';
+            } else {
+                dropdown.classList.remove('hidden');
+                descInput.classList.add('hidden');
+                descInput.value = '';
+            }
         });
     });
 }
@@ -93,6 +112,39 @@ function formatMoney(num) {
     return '$' + num.toFixed(2);
 }
 
+function updateInvoiceNumber() {
+    const clientSelect = document.getElementById('clientSelect');
+    const index = clientSelect.value;
+
+    const display = document.getElementById('invoiceNumberDisplay');
+
+    if (index === '') {
+        display.textContent = '';
+        return;
+    }
+
+    const client = clients[index];
+    const invoiceNumber = generateInvoiceNumber(client.name);
+
+    display.textContent = `Tax Invoice: ${invoiceNumber}`;
+}
+
+function generateInvoiceNumber(fullName) {
+    const parts = fullName.trim().split(' ');
+    const last = parts[parts.length - 1];
+    const first = parts[0];
+
+    const lastInitial = last.charAt(0).toUpperCase();
+    const firstInitial = first.charAt(0).toUpperCase();
+
+    const now = new Date();
+    const yy = String(now.getFullYear()).slice(-2);
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
+
+    return `${lastInitial}${firstInitial}${yy}${mm}${dd}`;
+}
+
 function sendInvoice() {
     const clientSelect = document.getElementById('clientSelect');
     const clientIndex = clientSelect.value;
@@ -103,21 +155,33 @@ function sendInvoice() {
     }
 
     const client = clients[clientIndex];
+    const invoiceNumber = generateInvoiceNumber(client.name);
 
-    const descSelects = document.querySelectorAll('select.desc');
-    const amountInputs = document.querySelectorAll('input.amount');
+    const rows = document.querySelectorAll('.invoice-row');
 
     let lines = [];
     let subtotal = 0;
 
-    for (let i = 0; i < descSelects.length; i++) {
-        const desc = descSelects[i].value.trim();
-        const val = parseFloat(amountInputs[i].value);
-        if (desc !== '' && !isNaN(val) && val > 0) {
-            lines.push(`${desc}: ${formatMoney(val)}`);
-            subtotal += val;
+    rows.forEach(row => {
+        const dropdown = row.querySelector('.descSelect');
+        const descInput = row.querySelector('.descInput');
+        const amountInput = row.querySelector('.amount');
+
+        const amount = parseFloat(amountInput.value);
+        if (isNaN(amount) || amount <= 0) return;
+
+        let label = dropdown.value;
+
+        if (label === 'Parts' || label === 'Labour') {
+            const desc = descInput.value.trim();
+            if (desc !== '') {
+                label = `${label} (${desc})`;
+            }
         }
-    }
+
+        lines.push(`${label}: ${formatMoney(amount)}`);
+        subtotal += amount;
+    });
 
     if (lines.length === 0) {
         alert('Please enter at least one line with an amount.');
@@ -126,21 +190,6 @@ function sendInvoice() {
 
     const gst = subtotal * 0.10;
     const total = subtotal + gst;
-
-    // Build Tax Invoice number
-    const nameParts = client.name.trim().split(' ');
-    const lastName = nameParts[nameParts.length - 1];
-    const firstName = nameParts[0];
-
-    const lastInitial = lastName.charAt(0).toUpperCase();
-    const firstInitial = firstName.charAt(0).toUpperCase();
-
-    const now = new Date();
-    const yy = String(now.getFullYear()).slice(-2);
-    const mm = String(now.getMonth() + 1).padStart(2, '0');
-    const dd = String(now.getDate()).padStart(2, '0');
-
-    const invoiceNumber = `${lastInitial}${firstInitial}${yy}${mm}${dd}`;
 
     let bodyLines = [];
     bodyLines.push(`Hello ${client.name},`);
