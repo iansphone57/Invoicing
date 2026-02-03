@@ -1,3 +1,4 @@
+alert("script.js loaded");
 const DESCRIPTION_OPTIONS = [
     'Onsite Service Call',
     'Parts',
