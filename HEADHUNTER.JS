@@ -1,4 +1,4 @@
-var headhunterFont = `
+jsPDF.API.addFont("headhunter.ttf", "headhunter", "normal");
      0  ÀOS/2ycjä   t   Ncmapñ]¸Ý  ›ô  ºcvt        bfpgm§Ù^“     dglyf÷–²  ü  ”¾hdmxö`F™   Ä  Èhead¯àV™   ü   6hhea	 ¹  4   $hmtxÜ`	’  ž°  `kernËÿâ  ¦Œ   xloca þ  ™¼  dmaxp èN  X    name-ü±Ñ  x  post
 š
   ›    Òprepø  ô         ÇµB_<õ  è    ¥Ý	V    ¥Ý	V  ÿ!ë            ëÿ!  P  ÿï                X    XA        @ 
@@ -2217,4 +2217,5 @@ F B+(:Fv/7 ?<?</ý/ý  ......10²L+632 #"&'&'.54
         t€     N  ÿä  ÿ÷  ÿÑ  ÿÑ # ÿ† $ ÿx & ÿ° $ ÿ¿  ÿà $ ÿÖ  ÿÖ & ÿµ  #ÿ‹  $ÿx  $ÿÖ  &ÿ°  &ÿÍ`;
 
 jsPDF.API.addFileToVFS("headhunter.ttf", headhunterFont);
+
 jsPDF.API.addFont("headhunter.ttf", "headhunter", "normal");
