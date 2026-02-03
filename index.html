@@ -16,29 +16,37 @@
             font-family: Arial, sans-serif;
             padding: 20px;
             font-size: 18px; /* Larger UI text */
+            background: #ffffff;
+            color: #000000;
         }
 
         h1 {
             font-size: 32px;
             margin-bottom: 5px;
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
         }
 
-        #version {
-            font-size: 14px;
-            color: #888;
-            margin-left: 6px;
-        }
-
-        /* Only PC Doctor uses Headhunter */
+        /* Only “PC Doctor” uses Headhunter */
         .pcdoctor {
             font-family: 'Headhunter', sans-serif;
             font-size: 70%; /* 30% smaller */
         }
 
+        /* Version number */
+        #version {
+            font-size: 14px;
+            color: #888;
+        }
+
         /* Make controls 20% larger */
-        input, select, button {
+        input,
+        select,
+        button {
             font-size: 120%;
             padding: 6px;
+            margin-right: 10px;
         }
 
         .invoice-row {
@@ -53,6 +61,11 @@
         #clientSelect {
             margin-bottom: 15px;
         }
+
+        button {
+            padding: 8px 14px;
+            cursor: pointer;
+        }
     </style>
 </head>
 
@@ -61,7 +74,7 @@
     <h1>
         <span class="pcdoctor">PC Doctor</span>
         Invoicing
-        <span id="version">v1.01</span>
+        <span id="version">v1.02</span>
     </h1>
 
     <h3>Load Clients CSV</h3>
@@ -92,7 +105,9 @@
     <button onclick="addRow()">Add Row</button>
     <button onclick="sendInvoice()">Send Invoice</button>
 
+    <!-- Cache‑busted script reference -->
     <script src="script.js?v=102"></script>
+
     <script>
         function addRow() {
             const container = document.getElementById("rows");
