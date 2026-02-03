@@ -20,15 +20,13 @@ function parseClientsCSV(csvText) {
     const lines = csvText.split("\n").map(l => l.trim()).filter(l => l.length > 0);
 
     const dropdown = document.getElementById("clientSelect");
-    dropdown.innerHTML = ""; // clear existing options
+    dropdown.innerHTML = "";
 
-    // Add default option
     const defaultOption = document.createElement("option");
     defaultOption.text = "Select a client";
     defaultOption.value = "";
     dropdown.appendChild(defaultOption);
 
-    // Add clients from CSV
     lines.forEach(line => {
         const option = document.createElement("option");
         option.text = line;
@@ -37,35 +35,29 @@ function parseClientsCSV(csvText) {
     });
 }
 
+// ============================
+// GENERATE PDF (VERSION 1.01)
+// ============================
+
 async function generatePDF() {
 
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
 
-    // REGISTER THE FONT (headhunter.js already loaded it into VFS)
-    doc.addFont("headhunter.ttf", "headhunter", "normal");
-
-    // ============================
-    // HEADER
-    // ============================
-    doc.setFont("headhunter", "normal");
-    doc.setFontSize(28);
+    // HEADER (Helvetica only)
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(26);
     doc.text("ORIGINAL PC DOCTOR", 105, 20, { align: "center" });
 
-    // Switch back to Helvetica for the rest
+    // BUSINESS DETAILS
     doc.setFont("helvetica", "normal");
     doc.setFontSize(12);
 
-    // ============================
-    // BUSINESS DETAILS (EVEN SPACING)
-    // ============================
     doc.text("Phone: 0402 026 000", 20, 35);
     doc.text("Mobile: 0402 026 000", 20, 42);
     doc.text("Email: originalpcdoctor@gmail.com", 20, 49);
 
-    // ============================
     // CLIENT DETAILS
-    // ============================
     const clientName = document.getElementById("clientName").value;
     const clientAddress = document.getElementById("clientAddress").value;
 
@@ -75,22 +67,17 @@ async function generatePDF() {
     doc.text(clientName, 20, 72);
     doc.text(clientAddress, 20, 79);
 
-    // ============================
     // INVOICE NUMBER + DATE
-    // ============================
     const today = new Date();
     const dateStr = today.toLocaleDateString("en-AU");
 
-    // Invoice number: initials + YYYYMMDD
     const initials = clientName.split(" ").map(w => w[0]).join("").toUpperCase();
     const invoiceNumber = `${initials}${today.getFullYear()}${String(today.getMonth()+1).padStart(2,"0")}${String(today.getDate()).padStart(2,"0")}`;
 
     doc.text(`Invoice #: ${invoiceNumber}`, 150, 35);
     doc.text(`Date: ${dateStr}`, 150, 42);
 
-    // ============================
     // LINE ITEMS
-    // ============================
     let y = 100;
 
     function addLine(label, amount, description) {
@@ -122,9 +109,7 @@ async function generatePDF() {
     addLine("Callout Fee", calloutAmount);
     addLine("Other", otherAmount);
 
-    // ============================
     // TOTALS
-    // ============================
     const subtotal =
         (parseFloat(partsAmount) || 0) +
         (parseFloat(labourAmount) || 0) +
@@ -148,14 +133,10 @@ async function generatePDF() {
     doc.text("Total:", 140, y);
     doc.text(`$${total.toFixed(2)}`, 200, y, { align: "right" });
 
-    // ============================
     // FOOTER
-    // ============================
     doc.setFontSize(10);
     doc.text("Thank you for your business!", 105, 285, { align: "center" });
 
-    // ============================
     // SAVE PDF
-    // ============================
     doc.save(`Invoice-${invoiceNumber}.pdf`);
 }
