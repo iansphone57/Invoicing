@@ -97,7 +97,7 @@ function monoNum(str) {
 // FIXED-WIDTH PADDING
 // =========================
 const PAD = "\u2007"; // FIGURE SPACE
-const COL_WIDTH = 65; // FINAL CORRECT WIDTH
+const COL_WIDTH = 55; // FINAL WORKING WIDTH
 
 function rightAlign(label, amountMono) {
     const totalLen = label.length + amountMono.length;
@@ -174,7 +174,7 @@ function sendInvoice() {
 
     // Invoice + Date
     const dateStr = "Date: " + monoNum(formatDate(new Date()));
-    const invoiceStr = "Tax Invoice " + invoiceNumber;
+    const invoiceStr = "  Tax Invoice " + invoiceNumber; // 2 spaces as requested
 
     bodyLines.push(rightAlign(invoiceStr, dateStr));
     bodyLines.push("");
