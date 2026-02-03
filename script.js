@@ -1,3 +1,42 @@
+// ============================
+// LOAD CLIENTS CSV
+// ============================
+
+function handleCSVUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+
+    reader.onload = function(e) {
+        const text = e.target.result;
+        parseClientsCSV(text);
+    };
+
+    reader.readAsText(file);
+}
+
+function parseClientsCSV(csvText) {
+    const lines = csvText.split("\n").map(l => l.trim()).filter(l => l.length > 0);
+
+    const dropdown = document.getElementById("clientSelect");
+    dropdown.innerHTML = ""; // clear existing options
+
+    // Add default option
+    const defaultOption = document.createElement("option");
+    defaultOption.text = "Select a client";
+    defaultOption.value = "";
+    dropdown.appendChild(defaultOption);
+
+    // Add clients from CSV
+    lines.forEach(line => {
+        const option = document.createElement("option");
+        option.text = line;
+        option.value = line;
+        dropdown.appendChild(option);
+    });
+}
+
 async function generatePDF() {
 
     const { jsPDF } = window.jspdf;
