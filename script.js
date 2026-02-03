@@ -1,7 +1,20 @@
 function sendInvoice() {
-    const FIG = "\u2007"; // U+2007 FIGURE SPACE
+    // Monospace digits (Mathematical Monospace)
+    const monoDigits = {
+        "0": "𝟶", "1": "𝟷", "2": "𝟸", "3": "𝟹", "4": "𝟺",
+        "5": "𝟻", "6": "𝟼", "7": "𝟽", "8": "𝟾", "9": "𝟿",
+        ".": "․", // DOT LEADER (monospace‑safe)
+        "$": "＄" // Fullwidth dollar sign (fixed width)
+    };
+
+    // Convert normal number string → monospace number string
+    function monoNum(str) {
+        return str.split("").map(ch => monoDigits[ch] || ch).join("");
+    }
+
+    const PAD = "\u2008"; // punctuation space (fixed width in Outlook Mobile)
     const COL_WIDTH = 80;
-    const MAX_LABEL = 50; // Option C
+    const MAX_LABEL = 50;
 
     const clientSelect = document.getElementById('clientSelect');
     const clientIndex = clientSelect.value;
@@ -52,57 +65,51 @@ function sendInvoice() {
     const gst = subtotal * 0.10;
     const total = subtotal + gst;
 
-    // Helper: pad with FIGURE SPACES
-    function padFig(str, totalWidth) {
-        const needed = totalWidth - str.length;
-        return needed > 0 ? str + FIG.repeat(needed) : str;
-    }
-
-    // Helper: right-align to column 80
-    function rightAlign(str) {
+    function rightAlignMono(str) {
         const needed = COL_WIDTH - str.length;
-        return FIG.repeat(needed) + str;
+        return PAD.repeat(needed) + str;
     }
 
-    // Helper: format money with decimal alignment
-    function money(num) {
-        return num.toFixed(2); // no $ yet
+    function moneyMono(num) {
+        const normal = num.toFixed(2);
+        return monoNum(normal);
     }
 
     let bodyLines = [];
 
-    // Header
+    // Header (unchanged)
     bodyLines.push("ORIGINAL PC DOCTOR");
     bodyLines.push("Onsite Servicing Brisbane and Surrounds".padEnd(61, " ") + "ABN: 63159610829");
     bodyLines.push("Phone: 34 222 007      Mobile: 0403 168 740      email: ian@pcdoc.net.au");
     bodyLines.push("");
 
     // Invoice + Date
-    const dateStr = "Date: " + formatDate(new Date());
+    const dateStr = "Date: " + monoNum(formatDate(new Date()));
     const invoiceStr = "Tax Invoice " + invoiceNumber;
-    bodyLines.push(padFig(invoiceStr, COL_WIDTH - dateStr.length) + dateStr);
+    const invoiceLine = invoiceStr + PAD.repeat(COL_WIDTH - invoiceStr.length - dateStr.length) + dateStr;
+    bodyLines.push(invoiceLine);
     bodyLines.push("");
 
     // Items
     items.forEach(item => {
-        const amt = "$" + money(item.amount);
+        const amtMono = "＄" + moneyMono(item.amount);
         const label = item.label;
 
-        const line = padFig(label, COL_WIDTH - amt.length) + amt;
+        const line = label + PAD.repeat(COL_WIDTH - label.length - amtMono.length) + amtMono;
         bodyLines.push(line);
     });
 
     bodyLines.push("");
 
     // Totals
-    const subStr = "$" + money(subtotal);
-    bodyLines.push(padFig("Subtotal:", COL_WIDTH - subStr.length) + subStr);
+    const subMono = "＄" + moneyMono(subtotal);
+    bodyLines.push("Subtotal:" + PAD.repeat(COL_WIDTH - "Subtotal:".length - subMono.length) + subMono);
 
-    const gstStr = "$" + money(gst);
-    bodyLines.push(padFig("GST (10%):", COL_WIDTH - gstStr.length) + gstStr);
+    const gstMono = "＄" + moneyMono(gst);
+    bodyLines.push("GST (10%):" + PAD.repeat(COL_WIDTH - "GST (10%):".length - gstMono.length) + gstMono);
 
-    const totalStr = "$" + money(total);
-    bodyLines.push(padFig("Total Including GST:", COL_WIDTH - totalStr.length) + totalStr);
+    const totalMono = "＄" + moneyMono(total);
+    bodyLines.push("Total Including GST:" + PAD.repeat(COL_WIDTH - "Total Including GST:".length - totalMono.length) + totalMono);
 
     bodyLines.push("");
     bodyLines.push("Thank you,");
