@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
 
-    <!-- Mobile scaling fix -->
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes">
 
     <title>PC Doctor Invoicing</title>
@@ -11,11 +10,15 @@
     <!-- Headhunter font -->
     <link href="https://fonts.cdnfonts.com/css/headhunter" rel="stylesheet">
 
+    <!-- jsPDF + AutoTable -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+
     <style>
         body {
             font-family: Arial, sans-serif;
             padding: 20px;
-            font-size: 18px; /* Larger UI text */
+            font-size: 18px;
             background: #ffffff;
             color: #000000;
         }
@@ -28,19 +31,16 @@
             gap: 6px;
         }
 
-        /* Only “PC Doctor” uses Headhunter */
         .pcdoctor {
             font-family: 'Headhunter', sans-serif;
-            font-size: 70%; /* 30% smaller */
+            font-size: 70%;
         }
 
-        /* Version number */
         #version {
             font-size: 14px;
             color: #888;
         }
 
-        /* Make controls 20% larger */
         input,
         select,
         button {
@@ -74,7 +74,7 @@
     <h1>
         <span class="pcdoctor">PC Doctor</span>
         Invoicing
-        <span id="version">v1.05</span>
+        <span id="version">v1.00</span>
     </h1>
 
     <h3>Load Clients CSV</h3>
@@ -103,10 +103,9 @@
     </div>
 
     <button onclick="addRow()">Add Row</button>
-    <button onclick="sendInvoice()">Send Invoice</button>
+    <button onclick="generatePdfAndEmail()">Generate PDF & Open Email</button>
 
-    <!-- Cache‑busted script reference -->
-    <script src="script.js?v=105"></script>
+    <script src="script.js?v=100"></script>
 
     <script>
         function addRow() {
